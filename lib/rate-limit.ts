@@ -2,12 +2,9 @@ import { Redis } from '@upstash/redis'
 import { Ratelimit } from '@upstash/ratelimit'
 import type { RateLimitStatus, RateLimitCheckResult } from '@/lib/types/rate-limit'
 import { RateLimitError } from '@/lib/types/rate-limit'
+import { redis } from './upstash/client';
 
-// Upstash Redisクライアントの初期化
-const redis = new Redis({
-  url: process.env.KV_REST_API_URL!,
-  token: process.env.KV_REST_API_TOKEN!,
-})
+
 
 // レート制限の設定: 1日2000回
 const ratelimit = new Ratelimit({
