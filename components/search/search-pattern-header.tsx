@@ -13,9 +13,9 @@ export function SearchPatternHeader({
 }: SearchPatternHeaderProps) {
   return (
     <div className="flex w-full bg-bg-100 h-12 mx-auto md:h-24 md:items-end max-w-4xl shrink-0 px-1">
-      <div className="flex w-full items-center justify-between gap-4 px-4">
+      <div className="flex w-full items-center justify-between gap-4 px-4 mt-6">
         <h1 className="text-3xl font-light tracking-tight text-foreground">
-          Customer Search
+          Biz Search
         </h1>
         {showNewButton && (
           <Link href="/customer-searches/create">

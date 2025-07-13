@@ -6,7 +6,7 @@ import { SearchPatternCard } from "./search-pattern-card";
 
 export function RelatedPatterns() {
   const [searchPatterns] = useLocalStorageState<searchPattern[] | []>(
-    "searchPatterns-new",
+    "searchPatterns",
     {
       defaultValue: [],
     }

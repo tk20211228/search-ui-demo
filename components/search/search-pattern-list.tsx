@@ -16,11 +16,12 @@ import { SearchPatternCard } from "./search-pattern-card";
 
 export function SearchPatternList() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchPatterns, setSearchPatterns] = useLocalStorageState<
-    searchPattern[]
-  >("searchPatterns-new", {
-    defaultValue: [],
-  });
+  const [searchPatterns] = useLocalStorageState<searchPattern[]>(
+    "searchPatterns",
+    {
+      defaultValue: [],
+    }
+  );
 
   const [sortBy, setSortBy] = useState<string>("recent-activity");
 

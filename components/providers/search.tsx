@@ -8,15 +8,15 @@ import {
   useState,
 } from "react";
 
-import { Form } from "../ui/form";
 import { useForm } from "react-hook-form";
+import { Form } from "../ui/form";
 
-import { zodResolver } from "@hookform/resolvers/zod";
+import { DEFAULT_SEARCH_PARAMS } from "@/lib/constants/search";
 import { searchPatternSchema } from "@/lib/schemas/search";
 import { searchPattern } from "@/lib/types/search";
-import { DEFAULT_SEARCH_PARAMS } from "@/lib/constants/search";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { RouteParams } from "@/lib/types/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useParams, useSearchParams } from "next/navigation";
 import useLocalStorageState from "use-local-storage-state";
 
 type ContextType = {
@@ -34,7 +34,6 @@ export function SearchProvider({ children }: { children: ReactNode }) {
   const [searchPattern, setSearchPattern] = useState<searchPattern | null>(
     null
   );
-  const router = useRouter();
   const params = useParams<RouteParams>();
   const searchId = params.searchId;
   // console.log("SearchProvider searchId", searchId);
@@ -47,7 +46,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
 
   const [searchPatterns, setSearchPatterns] = useLocalStorageState<
     searchPattern[]
-  >("searchPatterns-new", {
+  >("searchPatterns", {
     defaultValue: [],
   });
 
@@ -65,7 +64,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
         setSearchPattern(pattern);
       }
     }
-  }, [searchPatterns, searchId]);
+  }, [searchPatterns, searchId, customerName, form]);
 
   return (
     <Context

@@ -93,8 +93,8 @@ export function SearchPatternPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="h-full bg-background">
+      <div className="mx-auto max-w-7xl px-4 py-4 lg:py-8">
         <AnimatePresence mode="wait">
           {mode === "full" ? (
             <motion.div
@@ -120,7 +120,7 @@ export function SearchPatternPage() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="flex gap-6">
+              <div className="flex flex-col lg:flex-row gap-6">
                 {/* 検索結果 */}
                 <motion.div
                   className="flex-1"
@@ -138,18 +138,18 @@ export function SearchPatternPage() {
                   />
                 </motion.div>
 
-                {/* サイドバー */}
+                {/* サイドバー - モバイルでは非表示 */}
                 <motion.div
-                  className="w-80"
+                  className="hidden lg:block w-full lg:w-80"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
                 >
                   {/* パターン管理 */}
-                  <div className="sticky top-8 h-dvh w-80">
+                  <div className="lg:sticky lg:top-25 lg:h-dvh w-full lg:w-80">
                     <ScrollArea className="h-full">
                       {/* 検索フォーム（サイドバー版） */}
-                      <Card className="w-72 mx-4 p-4">
+                      <Card className="w-full lg:w-72 lg:mx-4 p-4 mb-4">
                         <SearchForm
                           handleSearch={handleSearch}
                           mode={mode}

@@ -49,6 +49,7 @@ export function SearchPatternFormModal({
       formData.userId = "demo-user";
       formData.createdAt = new Date().toISOString();
       formData.updatedAt = new Date().toISOString();
+      formData.lastUsedAt = new Date().toISOString();
       setSearchPatterns((prev) => [...prev, formData]);
       router.push(`/customer-searches/${searchId}`);
       // 履歴を置き換えてURLを変更（画面更新なし）
@@ -56,6 +57,7 @@ export function SearchPatternFormModal({
       toast.success("検索パターンを保存しました");
     } else {
       formData.updatedAt = new Date().toISOString();
+      formData.lastUsedAt = new Date().toISOString();
       setSearchPatterns((prev) =>
         prev.map((pattern) => (pattern.id === formData.id ? formData : pattern))
       );

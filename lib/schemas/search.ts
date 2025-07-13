@@ -20,6 +20,7 @@ const searchParamsSchema = z.object({
   prefectureExactMatch: matchTypeSchema,
   address: z.string().trim().optional(),
   addressExactMatch: matchTypeSchema,
+  isAdvancedSearchEnabled: z.boolean(),
   additionalKeywords: z.array(keywordsSchema),
   additionalKeywordsSearchMode: searchModeSchema,
   excludeKeywords: z.array(keywordsSchema),

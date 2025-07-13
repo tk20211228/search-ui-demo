@@ -1,10 +1,8 @@
 'use client';
 
-import {  GoogleSearchRequestResponse, searchPattern } from "@/lib/types/search";
+import { GoogleSearchRequestResponse, searchPattern } from "@/lib/types/search";
 import useSWR from "swr";
 import { googleSearch } from "../actions/search";
-import { customsearch_v1 } from "@googleapis/customsearch";
-import { ZodError } from "zod";
 import { generateGoogleSearchParams } from "../utils/search";
 
 interface UseGoogleSearchOptions {

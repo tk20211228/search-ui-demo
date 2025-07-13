@@ -1,4 +1,4 @@
-import { GoogleSearchRequestParams, searchPattern, Keywords } from "../types/search";
+import { GoogleSearchRequestParams, searchPattern } from "../types/search";
 
 /**
  * キーワードを検索クエリ用にフォーマットする
@@ -39,80 +39,103 @@ export const generateGoogleSearchParams = (parsedData: searchPattern, start: num
     customerName, customerNameExactMatch,
     prefecture, prefectureExactMatch,
     address, addressExactMatch,
+    isAdvancedSearchEnabled,
     additionalKeywords, additionalKeywordsSearchMode,
     excludeKeywords,
     searchSites, siteSearchMode
   } = searchParams;
 
-  // 基本検索クエリの構築
+  // ========================================
+  // 基本検索クエリの構築（常に実行）
+  // ========================================
   const queryParts: string[] = [];
   
-  // 顧客名
+  // 顧客名（必須）
   queryParts.push(formatKeyword(customerName, customerNameExactMatch));
   
-  // 都道府県
+  // 都道府県（オプション）
   if (prefecture && prefecture !== '選択しない') {
     queryParts.push(formatKeyword(prefecture, prefectureExactMatch));
   }
   
-  // 市区町村以降
-  if (address) {
-    queryParts.push(formatKeyword(address, addressExactMatch));
+  // 市区町村以降（オプション）
+  if (address && address.trim()) {
+    queryParts.push(formatKeyword(address.trim(), addressExactMatch));
   }
 
-  // 追加キーワードの処理
-  let orTerms: string | undefined;
-  if (additionalKeywords.length > 0) {
-    if (additionalKeywordsSearchMode === "and") {
-      // AND検索: メインクエリに追加
-      const andKeywords = additionalKeywords.map(keyword => 
-        formatKeyword(keyword.value, keyword.matchType)
-      );
-      queryParts.push(...andKeywords);
-    } else if (additionalKeywordsSearchMode === "or") {
-      // OR検索: orTermsパラメータを使用
-      orTerms = additionalKeywords
-        .map(keyword => formatKeyword(keyword.value, keyword.matchType))
-        .join("|");
-    }
-  }
-
-  // 除外キーワードの処理
-  let excludeTerms: string | undefined;
-  if (excludeKeywords.length > 0) {
-    excludeTerms = excludeKeywords
-      .map(keyword => formatKeyword(keyword.value, keyword.matchType))
-      .join(" ");
-  }
-
-  // Google検索パラメータの初期化
+  // 基本のGoogle検索パラメータを作成
   const googleSearchParams: GoogleSearchRequestParams = {
-    q: queryParts.join(' '),
+    q: queryParts.join(' ').trim(),
     cx: process.env.GOOGLE_CUSTOM_SEARCH_ENGINE_ID!,
     num: MAX_RESULTS,
     start: start,
   };
 
-  // サイト検索の処理
-  if (searchSites.length > 0 && siteSearchMode !== 'any') {
-    if (searchSites.length === 1) {
-      // 単一サイト: API パラメータを使用
-      googleSearchParams.siteSearch = searchSites[0];
-      googleSearchParams.siteSearchFilter = siteSearchMode === 'specific' ? 'i' : 'e';
-    } else {
-      // 複数サイト: クエリに追加
-      const siteQuery = buildMultipleSiteQuery(searchSites, siteSearchMode);
-      googleSearchParams.q = `${googleSearchParams.q} ${siteQuery}`.trim();
+  // ========================================
+  // 高度な検索オプション（トグルON時のみ実行）
+  // ========================================
+  if (isAdvancedSearchEnabled) {
+    // 追加キーワードの処理
+    if (additionalKeywords && additionalKeywords.length > 0) {
+      if (additionalKeywordsSearchMode === "and") {
+        // AND検索: メインクエリに追加
+        const andKeywords = additionalKeywords
+          .filter(keyword => keyword.value && keyword.value.trim()) // 空の値を除外
+          .map(keyword => formatKeyword(keyword.value.trim(), keyword.matchType));
+        
+        if (andKeywords.length > 0) {
+          // 既存のクエリに追加
+          googleSearchParams.q = `${googleSearchParams.q} ${andKeywords.join(' ')}`.trim();
+        }
+      } else if (additionalKeywordsSearchMode === "or") {
+        // OR検索: orTermsパラメータを使用
+        const orKeywords = additionalKeywords
+          .filter(keyword => keyword.value && keyword.value.trim()) // 空の値を除外
+          .map(keyword => formatKeyword(keyword.value.trim(), keyword.matchType))
+          .join("|");
+        
+        if (orKeywords) {
+          googleSearchParams.orTerms = orKeywords;
+        }
+      }
+    }
+
+    // 除外キーワードの処理
+    if (excludeKeywords && excludeKeywords.length > 0) {
+      const excludeTerms = excludeKeywords
+        .filter(keyword => keyword.value && keyword.value.trim()) // 空の値を除外
+        .map(keyword => formatKeyword(keyword.value.trim(), keyword.matchType))
+        .join(" ");
+      
+      if (excludeTerms) {
+        googleSearchParams.excludeTerms = excludeTerms;
+      }
+    }
+
+    // サイト検索の処理
+    if (searchSites && searchSites.length > 0 && siteSearchMode !== 'any') {
+      // 空のサイトを除外
+      const validSites = searchSites.filter(site => site && site.trim());
+      
+      if (validSites.length > 0) {
+        if (validSites.length === 1) {
+          // 単一サイト: API パラメータを使用
+          googleSearchParams.siteSearch = validSites[0].trim();
+          googleSearchParams.siteSearchFilter = siteSearchMode === 'specific' ? 'i' : 'e';
+        } else {
+          // 複数サイト: クエリに追加
+          const siteQuery = buildMultipleSiteQuery(
+            validSites.map(site => site.trim()), 
+            siteSearchMode as 'specific' | 'exclude'
+          );
+          googleSearchParams.q = `${googleSearchParams.q} ${siteQuery}`.trim();
+        }
+      }
     }
   }
 
-  // オプションパラメータの追加
-  if (orTerms) {
-    googleSearchParams.orTerms = orTerms;
-  }
-  if (excludeTerms) {
-    googleSearchParams.excludeTerms = excludeTerms;
-  }
+  // クエリの最終的なクリーンアップ（連続するスペースを単一のスペースに）
+  googleSearchParams.q = googleSearchParams.q?.replace(/\s+/g, ' ').trim();
 
   return googleSearchParams;
 }

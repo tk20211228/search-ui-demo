@@ -1,13 +1,12 @@
 "use client";
 
-import Link from "next/link";
+import { searchPattern } from "@/lib/types/search";
+import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
-import { cn } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { searchPattern } from "@/lib/types/search";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useFormContext } from "react-hook-form";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 interface SearchPatternCardProps {
   searchPattern: searchPattern;
@@ -18,7 +17,6 @@ export function SearchPatternCard({
   searchPattern,
   className,
 }: SearchPatternCardProps) {
-  const router = useRouter();
   // パターンの概要を生成
   const getPatternSummary = () => {
     const parts = [];

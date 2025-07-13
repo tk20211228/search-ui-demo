@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { TagInput } from "@/components/ui/tag-input";
 import { TagInputElegant } from "@/components/ui/tag-input-elegant";
 import { DEFAULT_SEARCH_PARAMS } from "@/lib/constants/search";
@@ -43,6 +44,7 @@ import {
   MoreHorizontalIcon,
   SaveIcon,
   Search,
+  Settings2,
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
@@ -69,10 +71,9 @@ export function SearchForm({
   setShowEditModal,
   setShowDeleteModal,
 }: SearchFormProps) {
-  // console.log("mode", mode);
   const form = useFormContext<searchPattern>();
-  const prefecture = form.watch("searchParams.prefecture");
-  // console.log("prefecture", prefecture);
+  const advancedEnabled = form.watch("searchParams.isAdvancedSearchEnabled");
+
   // スタイル定義
   const styles = {
     form: cn(
@@ -433,196 +434,273 @@ export function SearchForm({
         </div>
 
         {/* 高度な検索オプション*/}
-        <Accordion type="single" collapsible>
-          <AccordionItem value="item-2">
-            <AccordionTrigger
-              className={`bg-muted/50 px-6
-              dark:hover:bg-muted transition-colors 
-              [&[data-state=open]]:rounded-b-none
-              dark:[&[data-state=open]]:bg-muted
-              `}
-            >
-              {mode === "full" ? "高度な検索オプション" : "詳細オプション"}
-            </AccordionTrigger>
-            <AccordionContent
-              className={`
-              bg-muted/50 pb-4 rounded-b-lg px-6 pt-2
-              dark:[&[data-state=open]]:bg-muted
-              `}
-            >
-              {/* 追加キーワード */}
-              <div className="space-y-3">
-                <Label className={styles.label}>
-                  追加キーワード{mode === "full" && "（任意）"}
-                </Label>
+        <div className="space-y-0">
+          {/* トグル付きヘッダー */}
+          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-t-lg border border-b-0">
+            <div className="flex items-center gap-2">
+              <Settings2
+                className={cn(
+                  "text-muted-foreground",
+                  mode === "sidebar" ? "size-4" : "size-5"
+                )}
+              />
+              <h3
+                className={cn(
+                  "font-medium",
+                  mode === "sidebar" ? "text-sm" : "text-base"
+                )}
+              >
+                {mode === "full" ? "高度な検索オプション" : "詳細オプション"}
+              </h3>
+              <span
+                className={cn(
+                  "text-muted-foreground",
+                  mode === "sidebar" ? "text-xs" : "text-sm"
+                )}
+              >
+                {advancedEnabled ? "有効" : "無効"}
+              </span>
+            </div>
+            <FormField
+              control={form.control}
+              name="searchParams.isAdvancedSearchEnabled"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      aria-label="高度な検索オプションの切り替え"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
 
-                <FormField
-                  control={form.control}
-                  name="searchParams.additionalKeywords"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <TagInputElegant
-                          keywords={field.value || []}
-                          onChange={field.onChange}
-                          placeholder={
-                            mode === "sidebar" ? "役職など" : "会社名、役職など"
-                          }
-                          defaultKeywords={defaultAdditionalKeywords}
-                        />
-                      </FormControl>
-                    </FormItem>
+          {/* Accordionコンテンツ */}
+          <Accordion
+            type="single"
+            collapsible
+            disabled={!advancedEnabled}
+            className="border border-t-0 rounded-b-lg overflow-hidden bg-muted/50"
+          >
+            <AccordionItem value="item-2" className="border-0">
+              <AccordionTrigger
+                className={cn(
+                  "px-4 py-3 hover:no-underline",
+                  "bg-muted/50 dark:bg-muted/50",
+                  "transition-all duration-200",
+                  !advancedEnabled && "opacity-50 cursor-not-allowed",
+                  "[&[data-state=open]]:bg-muted/50 dark:[&[data-state=open]]:bg-muted/50"
+                )}
+              >
+                <span
+                  className={cn(
+                    "text-sm",
+                    !advancedEnabled && "text-muted-foreground"
                   )}
-                />
+                >
+                  {advancedEnabled
+                    ? "クリックして設定を展開"
+                    : "トグルをONにして有効化"}
+                </span>
+              </AccordionTrigger>
+              <AccordionContent
+                className={cn(
+                  "bg-muted/50 px-4 pb-4 pt-2",
+                  "transition-all duration-200",
+                  !advancedEnabled && "opacity-50 pointer-events-none"
+                )}
+              >
+                {/* 追加キーワード */}
+                <div className="space-y-3">
+                  <Label className={styles.label}>
+                    追加キーワード{mode === "full" && "（任意）"}
+                  </Label>
 
-                <FormField
-                  control={form.control}
-                  name="searchParams.additionalKeywordsSearchMode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <RadioGroup
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          className={cn(
-                            "mt-2",
-                            mode === "sidebar" && "flex gap-3"
-                          )}
-                        >
-                          <div
-                            className={
-                              mode === "sidebar" ? "flex gap-3" : "flex gap-6"
+                  <FormField
+                    control={form.control}
+                    name="searchParams.additionalKeywords"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <TagInputElegant
+                            keywords={field.value || []}
+                            onChange={field.onChange}
+                            placeholder={
+                              mode === "sidebar"
+                                ? "役職など"
+                                : "会社名、役職など"
                             }
+                            defaultKeywords={defaultAdditionalKeywords}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="searchParams.additionalKeywordsSearchMode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <RadioGroup
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            className={cn(
+                              "mt-2",
+                              mode === "sidebar" && "flex gap-3"
+                            )}
                           >
-                            <FormItem className="flex items-center space-x-2">
-                              <FormControl>
-                                <RadioGroupItem value="and" className="peer" />
-                              </FormControl>
-                              <FormLabel className={styles.radioLabel}>
-                                {mode === "sidebar"
-                                  ? "AND"
-                                  : "すべてを含む（AND）"}
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-2">
-                              <FormControl>
-                                <RadioGroupItem value="or" className="peer" />
-                              </FormControl>
-                              <FormLabel className={styles.radioLabel}>
-                                {mode === "sidebar"
-                                  ? "OR"
-                                  : "いずれかを含む（OR）"}
-                              </FormLabel>
-                            </FormItem>
-                          </div>
-                        </RadioGroup>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <Separator className="my-4" />
+                            <div
+                              className={
+                                mode === "sidebar" ? "flex gap-3" : "flex gap-6"
+                              }
+                            >
+                              <FormItem className="flex items-center space-x-2">
+                                <FormControl>
+                                  <RadioGroupItem
+                                    value="and"
+                                    className="peer"
+                                  />
+                                </FormControl>
+                                <FormLabel className={styles.radioLabel}>
+                                  {mode === "sidebar"
+                                    ? "AND"
+                                    : "すべてを含む（AND）"}
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-2">
+                                <FormControl>
+                                  <RadioGroupItem value="or" className="peer" />
+                                </FormControl>
+                                <FormLabel className={styles.radioLabel}>
+                                  {mode === "sidebar"
+                                    ? "OR"
+                                    : "いずれかを含む（OR）"}
+                                </FormLabel>
+                              </FormItem>
+                            </div>
+                          </RadioGroup>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <Separator className="my-4" />
 
-                <Label className={styles.label}>
-                  除外キーワード{mode === "full" && "（任意）"}
-                </Label>
+                  <Label className={styles.label}>
+                    除外キーワード{mode === "full" && "（任意）"}
+                  </Label>
 
-                <FormField
-                  control={form.control}
-                  name="searchParams.excludeKeywords"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <TagInputElegant
-                          keywords={field.value || []}
-                          onChange={field.onChange}
-                          placeholder={
-                            mode === "sidebar" ? "東京都" : "東京都、大阪府など"
-                          }
-                          defaultKeywords={defaultExcludeKeywords}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <Separator className="my-4" />
-                {/* 検索対象サイト */}
-                <Label className={styles.label}>検索対象サイト</Label>
+                  <FormField
+                    control={form.control}
+                    name="searchParams.excludeKeywords"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <TagInputElegant
+                            keywords={field.value || []}
+                            onChange={field.onChange}
+                            placeholder={
+                              mode === "sidebar"
+                                ? "東京都"
+                                : "東京都、大阪府など"
+                            }
+                            defaultKeywords={defaultExcludeKeywords}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <Separator className="my-4" />
+                  {/* 検索対象サイト */}
+                  <Label className={styles.label}>検索対象サイト</Label>
 
-                <FormField
-                  control={form.control}
-                  name="searchParams.searchSites"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <TagInput
-                          value={field.value || []}
-                          onChange={field.onChange}
-                          placeholder={
-                            mode === "sidebar"
-                              ? "ドメイン"
-                              : "追加するドメインを入力（例: example.com）"
-                          }
-                          defaultTags={defaultSites}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="searchParams.searchSites"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <TagInput
+                            value={field.value || []}
+                            onChange={field.onChange}
+                            placeholder={
+                              mode === "sidebar"
+                                ? "ドメイン"
+                                : "追加するドメインを入力（例: example.com）"
+                            }
+                            defaultTags={defaultSites}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="searchParams.siteSearchMode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <RadioGroup
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          className={cn("mt-4", mode === "sidebar" && "mt-2")}
-                        >
-                          <div className="flex gap-6">
-                            <FormItem className="flex items-center space-x-2">
-                              <FormControl>
-                                <RadioGroupItem value="any" className="peer" />
-                              </FormControl>
-                              <FormLabel className={styles.radioLabel}>
-                                {mode === "sidebar" ? "全て" : "すべてのサイト"}
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-2">
-                              <FormControl>
-                                <RadioGroupItem
-                                  value="specific"
-                                  className="peer"
-                                />
-                              </FormControl>
-                              <FormLabel className={styles.radioLabel}>
-                                {mode === "sidebar" ? "指定" : "指定サイトのみ"}
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-2">
-                              <FormControl>
-                                <RadioGroupItem
-                                  value="exclude"
-                                  className="peer"
-                                />
-                              </FormControl>
-                              <FormLabel className={styles.radioLabel}>
-                                {mode === "sidebar"
-                                  ? "除外"
-                                  : "指定サイトを除外"}
-                              </FormLabel>
-                            </FormItem>
-                          </div>
-                        </RadioGroup>
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+                  <FormField
+                    control={form.control}
+                    name="searchParams.siteSearchMode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <RadioGroup
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            className={cn("mt-4", mode === "sidebar" && "mt-2")}
+                          >
+                            <div className="flex gap-6">
+                              <FormItem className="flex items-center space-x-2">
+                                <FormControl>
+                                  <RadioGroupItem
+                                    value="any"
+                                    className="peer"
+                                  />
+                                </FormControl>
+                                <FormLabel className={styles.radioLabel}>
+                                  {mode === "sidebar"
+                                    ? "全て"
+                                    : "すべてのサイト"}
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-2">
+                                <FormControl>
+                                  <RadioGroupItem
+                                    value="specific"
+                                    className="peer"
+                                  />
+                                </FormControl>
+                                <FormLabel className={styles.radioLabel}>
+                                  {mode === "sidebar"
+                                    ? "指定"
+                                    : "指定サイトのみ"}
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-2">
+                                <FormControl>
+                                  <RadioGroupItem
+                                    value="exclude"
+                                    className="peer"
+                                  />
+                                </FormControl>
+                                <FormLabel className={styles.radioLabel}>
+                                  {mode === "sidebar"
+                                    ? "除外"
+                                    : "指定サイトを除外"}
+                                </FormLabel>
+                              </FormItem>
+                            </div>
+                          </RadioGroup>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
 
         <Button
           type="submit"

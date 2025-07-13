@@ -2,10 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { GoogleSearchRequestResponse } from "@/lib/types/search";
-import { cn } from "@/lib/utils";
-import { ArrowLeft, ExternalLink, RotateCcw } from "lucide-react";
-import Link from "next/link";
 import {
   Pagination,
   PaginationContent,
@@ -15,6 +11,10 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { GoogleSearchRequestResponse } from "@/lib/types/search";
+import { cn } from "@/lib/utils";
+import { ArrowLeft, ExternalLink } from "lucide-react";
+import Link from "next/link";
 
 interface SearchResultsProps {
   data?: GoogleSearchRequestResponse;
@@ -50,8 +50,11 @@ export function SearchResults({
   // ページネーションのページ番号を生成
   const getPageNumbers = () => {
     const pages: number[] = [];
-    const startPage = Math.max(1, currentPage - 2);
-    const endPage = Math.min(maxPages, currentPage + 2);
+    // モバイルでは表示ページ数を減らす
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+    const range = isMobile ? 1 : 2;
+    const startPage = Math.max(1, currentPage - range);
+    const endPage = Math.min(maxPages, currentPage + range);
 
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
@@ -89,19 +92,19 @@ export function SearchResults({
 
   return (
     <div className="w-full" data-search-results>
-      <div className="sticky top-0 pb-6 -mt-8 pt-8 z-10 bg-background/50 backdrop-blur-sm">
-        <div className="flex items-center justify-between">
+      <div className="sticky top-15 pb-4 sm:pb-6 -mt-8 pt-8 z-10 bg-background/50 backdrop-blur-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold">
+            <h2 className="text-xl sm:text-2xl font-semibold">
               検索結果
-              <span className="text-sm text-muted-foreground ml-2">
+              <span className="text-xs sm:text-sm text-muted-foreground ml-2">
                 ({data?.searchInformation?.formattedTotalResults} 件)
               </span>
             </h2>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               検索項目：{data?.queries?.request?.[0].searchTerms}
             </p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               除外項目：{data?.queries?.request?.[0].excludeTerms}
             </p>
           </div>
@@ -114,7 +117,7 @@ export function SearchResults({
               className="text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              戻る
+              <span className="hidden sm:inline">戻る</span>
             </Button>
           </div>
         </div>
@@ -184,46 +187,43 @@ export function SearchResults({
                     "relative"
                   )}
                 >
-                  <CardContent className="p-6 flex gap-4">
-                    <div className="space-y-3 flex justify-between w-full">
-                      <div className="space-y-3">
-                        <div>
-                          <Link
-                            href={item.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-4"
-                          >
-                            <h3 className="text-lg font-medium hover:underline inline-flex items-center gap-1">
-                              {item.title}
-                              <span className="absolute inset-0" />
-                            </h3>
-                            <ExternalLink className="size-3" />
-                          </Link>
-                        </div>
-                        <p className="text-sm text-foreground/80">
-                          {item.displayLink || item.link}
-                        </p>
-                        <div
-                          className={cn(
-                            "prose prose-sm max-w-none",
-                            "dark:prose-invert",
-                            "line-clamp-3"
-                          )}
-                          dangerouslySetInnerHTML={{
-                            __html: item.htmlSnippet || item.snippet || "",
-                          }}
-                        />
+                  <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row gap-4">
+                    <div className="flex-1 space-y-3">
+                      <div>
+                        <Link
+                          href={item.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 sm:gap-4"
+                        >
+                          <h3 className="text-base sm:text-lg font-medium hover:underline inline-flex items-center gap-1">
+                            {item.title}
+                            <span className="absolute inset-0" />
+                          </h3>
+                          <ExternalLink className="size-3 flex-shrink-0" />
+                        </Link>
                       </div>
+                      <p className="text-xs sm:text-sm text-foreground/80">
+                        {item.displayLink || item.link}
+                      </p>
+                      <div
+                        className={cn(
+                          "prose prose-sm max-w-none",
+                          "dark:prose-invert",
+                          "line-clamp-2 sm:line-clamp-3",
+                          "text-xs sm:text-sm"
+                        )}
+                        dangerouslySetInnerHTML={{
+                          __html: item.htmlSnippet || item.snippet || "",
+                        }}
+                      />
                     </div>
 
                     {image && (
                       <img
                         src={image}
                         alt={item.title || "Search result image"}
-                        className={`aspect-video object-cover rounded-md h-35 
-                        border-muted-foreground/20 border                       
-                          `}
+                        className="aspect-video object-cover rounded-md w-full sm:w-24 sm:h-16 md:w-32 md:h-20 lg:w-40 lg:h-28 border-muted-foreground/20 border flex-shrink-0 order-first sm:order-last"
                         onError={(e) => {
                           e.currentTarget.style.display = "none";
                         }}
@@ -270,7 +270,7 @@ export function SearchResults({
               ))}
 
               {currentPage < maxPages - 2 && (
-                <PaginationItem>
+                <PaginationItem className="hidden sm:block">
                   <PaginationEllipsis />
                 </PaginationItem>
               )}

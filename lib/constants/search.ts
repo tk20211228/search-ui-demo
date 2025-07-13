@@ -6,12 +6,13 @@ export const DEFAULT_SEARCH_PARAMS: searchPattern = {
   searchPatternName: "新規検索パターン",
   searchPatternDescription: "",
   searchParams: {
-    customerName: "齋藤", //薮田大地
+    customerName: "", //薮田大地
     customerNameExactMatch: "exact",
     prefecture: "選択しない",
     prefectureExactMatch: "exact",
     address: "",
     addressExactMatch: "exact",
+    isAdvancedSearchEnabled: false,
     additionalKeywords: [
       {
         value: "代表取締役",
