@@ -1,6 +1,6 @@
 'use client';
 
-import { SearchParams } from "@/lib/types/search";
+import { searchPattern } from "@/lib/types/search";
 import useSWR from "swr";
 import { googleSearch } from "../actions/search";
 
@@ -12,7 +12,7 @@ interface UseGoogleSearchOptions {
 }
 
 export function useGoogleSearch(
-  formData: SearchParams | null,
+  formData: searchPattern | null,
   options: UseGoogleSearchOptions = {}
 ) {
   const {

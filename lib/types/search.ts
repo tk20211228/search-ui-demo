@@ -25,7 +25,7 @@ export type SearchParamsOld = {
   searchSites?: string[];
 }
 
-export type SearchParams = z.infer<typeof searchPatternSchema>;
+export type searchPattern = z.infer<typeof searchPatternSchema>;
 
 export type SearchResult = {
   id: string;
@@ -35,7 +35,6 @@ export type SearchResult = {
   category: string;
   date: string;
 }
-
 
 export type GoogleSearchResponse ={
   kind: string;
@@ -118,4 +117,6 @@ export interface GoogleSearchError {
 
 export type MatchType = z.infer<typeof matchTypeSchema>;
 export type AdditionalKeywords = z.infer<typeof additionalKeywordsSchema>;
+
+
 

@@ -22,9 +22,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { SearchParams } from "@/lib/types/search";
+import { searchPattern } from "@/lib/types/search";
 import { useFormContext } from "react-hook-form";
 import useLocalStorageState from "use-local-storage-state";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+import { useSearch } from "../providers/search";
 
 interface SearchPatternFormModalProps {
   isOpen: boolean;
@@ -40,27 +43,32 @@ export function SearchPatternFormModal({
   onClose,
   mode,
 }: SearchPatternFormModalProps) {
-  const form = useFormContext<SearchParams>();
-  const [searchPattern, setSearchPattern] = useLocalStorageState<
-    SearchParams[] | []
-  >("searchPatterns-new", {
-    defaultValue: [],
-  });
+  const form = useFormContext<searchPattern>();
+  const { searchPatterns, setSearchPatterns } = useSearch();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const searchId = searchParams.get("searchId");
+  const isNew = mode === "create" && !searchId;
 
-  const handleCreateOrEdit = (formData: SearchParams) => {
-    console.log("handleSave", searchPattern);
-    if (mode === "create") {
-      formData.id = crypto.randomUUID();
+  const handleCreateOrEdit = (formData: searchPattern) => {
+    console.log("handleSave", searchPatterns);
+    if (isNew) {
+      const searchId = crypto.randomUUID();
+      formData.id = searchId;
       formData.userId = "demo-user";
       formData.createdAt = new Date().toISOString();
-      setSearchPattern([...searchPattern, formData]);
+      setSearchPatterns([...searchPatterns, formData]);
+      router.push(`/customer-searches/${searchId}`);
+      toast.success("検索パターンを保存しました");
     } else {
-      setSearchPattern(
-        searchPattern.map((pattern) =>
+      setSearchPatterns(
+        searchPatterns.map((pattern) =>
           pattern.id === formData.id ? formData : pattern
         )
       );
+      toast.success("検索パターンを更新しました");
     }
+    onClose();
   };
   const { isSubmitting, isValidating } = form.formState;
 

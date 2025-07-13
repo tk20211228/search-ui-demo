@@ -36,7 +36,7 @@ export const searchPatternSchema = z.object({
   searchPatternName: nameSchema,
   searchPatternDescription: searchPatternDescriptionSchema,
   searchParams: searchParamsSchema,
-  createdAt: z.string().optional(),
+  createdAt: z.string(),
   updatedAt: z.string().optional(),
   lastUsedAt: z.string().optional(),
 });

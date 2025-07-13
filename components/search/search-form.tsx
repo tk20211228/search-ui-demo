@@ -54,7 +54,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useSearch } from "@/lib/hooks/use-search";
-import { SearchParams } from "@/lib/types/search";
+import { searchPattern } from "@/lib/types/search";
 import {
   Accordion,
   AccordionContent,
@@ -63,29 +63,31 @@ import {
 } from "@/components/ui/accordion";
 import { DEFAULT_SEARCH_PARAMS } from "@/lib/constants/search";
 import { SearchProvider } from "../providers/search";
+import { useSearchParams } from "next/navigation";
 
 interface SearchFormProps {
   mode: "full" | "sidebar";
-  isNew?: boolean;
-  handleSearch: (params: SearchParams) => void;
+  isNew: boolean;
+  handleSearch: (params: searchPattern) => void;
 
   onEdit?: () => void;
   onDelete?: () => void;
   onSave?: (name: string, description: string) => void;
-  setShowModal?: (show: boolean) => void;
+  setShowSaveModal?: (show: boolean) => void;
+  setShowEditModal?: (show: boolean) => void;
+  setShowDeleteModal?: (show: boolean) => void;
+  handleSaveAs?: (params: searchPattern) => void;
 }
 
 export function SearchForm({
   mode,
-  isNew = false,
+  isNew,
   handleSearch,
-  onEdit,
-  onDelete,
-  onSave,
-  setShowModal,
+  setShowSaveModal,
+  setShowEditModal,
+  setShowDeleteModal,
+  handleSaveAs,
 }: SearchFormProps) {
-  // const [showSaveModal, setShowSaveModal] = useState(false);
-  // console.log("showSaveModal", showSaveModal);
   // スタイル定義
   const styles = {
     form: cn(
@@ -99,7 +101,9 @@ export function SearchForm({
       "flex items-start justify-between",
       mode === "sidebar" ? "gap-2" : "gap-4"
     ),
-    headerTitle: cn(mode === "sidebar" ? "font-medium" : "text-2xl font-light"),
+    headerTitle: cn(
+      mode === "sidebar" ? "font-medium truncate" : "text-2xl font-light"
+    ),
     headerDescription: cn(
       "text-muted-foreground",
       mode === "sidebar"
@@ -141,7 +145,7 @@ export function SearchForm({
     submitButton: cn("w-full"),
     submitButtonSize: (mode === "sidebar" ? "sm" : "lg") as "sm" | "lg",
   };
-  const form = useFormContext<SearchParams>();
+  const form = useFormContext<searchPattern>();
   const { isSubmitting, isValidating } = form.formState;
   const searchPatternName = form.watch("searchPatternName");
   const searchPatternDescription = form.watch("searchPatternDescription");
@@ -183,12 +187,12 @@ export function SearchForm({
                 variant="ghost"
                 size="icon"
                 className="size-8"
-                onClick={() => setShowModal?.(true)}
+                onClick={() => setShowSaveModal?.(true)}
               >
                 <SaveIcon className="size-5" />
               </Button>
             ) : (
-              (onEdit || onDelete) && (
+              !isNew && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="size-8">
@@ -196,12 +200,19 @@ export function SearchForm({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={onEdit}>
-                      <Edit2 className="mr-2 size-3" />
-                      詳細を編集
+                    <DropdownMenuItem onClick={() => setShowEditModal?.(true)}>
+                      <Edit2 className="mr-2 size-4" />
+                      設定を更新
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={onDelete} variant="destructive">
-                      <Trash2 className="mr-2 size-3" />
+                    <DropdownMenuItem onClick={() => setShowSaveModal?.(true)}>
+                      <SaveIcon className="mr-2 size-4" />
+                      名前をつけて保存
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setShowDeleteModal?.(true)}
+                      variant="destructive"
+                    >
+                      <Trash2 className="mr-2 size-4" />
                       削除
                     </DropdownMenuItem>
                   </DropdownMenuContent>

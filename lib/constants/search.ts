@@ -1,6 +1,6 @@
-import { SearchParams } from "@/lib/types/search";
+import { searchPattern } from "@/lib/types/search";
 
-export const DEFAULT_SEARCH_PARAMS: SearchParams = {
+export const DEFAULT_SEARCH_PARAMS: searchPattern = {
   id: undefined,
   userId: undefined,
   searchPatternName: "新規検索パターン",
@@ -30,7 +30,7 @@ export const DEFAULT_SEARCH_PARAMS: SearchParams = {
     searchSites: ["facebook.com", "linkedin.com", "nikkei.com"],
     siteSearchMode: "any",
   },
-  createdAt: undefined,
+  createdAt: "",
   updatedAt: undefined,
   lastUsedAt: undefined,
 };

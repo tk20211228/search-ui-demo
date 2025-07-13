@@ -1,123 +1,61 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { SearchFormOld } from "@/components/search/old/search-form-old";
-import { SearchResults } from "@/components/search/search-results";
-import { RelatedPatterns } from "@/components/search/related-patterns";
 import { SearchPatternFormModal } from "@/components/search/search-pattern-form-modal";
-import { useSearch } from "@/lib/hooks/use-search";
-import { useSearchPattern } from "@/lib/hooks/use-search-pattern";
-import {
-  CustomerSearchParams,
-  SearchPattern,
-} from "@/lib/types/search-pattern";
-import { buildSearchQuery } from "@/lib/search-utils";
-import { ScrollArea } from "../ui/scroll-area";
 import { Card } from "@/components/ui/card";
-import { SearchForm } from "./search-form";
-import { SearchParams } from "@/lib/types/search";
 import { useGoogleSearch } from "@/lib/swr/use-google-search";
-import { SearchProvider } from "../providers/search";
+import { searchPattern } from "@/lib/types/search";
+import { AnimatePresence, motion } from "framer-motion";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { ScrollArea } from "../ui/scroll-area";
+import { SearchForm } from "./search-form";
+import { useSearch } from "../providers/search";
+import { SearchPatternDeleteModal } from "./search-pattern-delete-modal";
+import { RelatedPatterns } from "./related-patterns";
 
-interface SearchPatternPageProps {
-  searchId?: string;
-}
-
-export function SearchPatternPage({ searchId }: SearchPatternPageProps) {
-  const router = useRouter();
-  const { search, performSearch, closeSearch } = useSearch();
-  const {
-    patterns,
-    selectPattern,
-    updatePattern,
-    deletePattern,
-    createPattern,
-  } = useSearchPattern();
-
+export function SearchPatternPage() {
+  // DB対応していないため、クライアント側でsearchIdをURLから取得する
+  const params = useParams();
+  const searchId = params.searchId;
   const isNew = searchId === "create";
-  const [currentPattern, setCurrentPattern] = useState<SearchPattern | null>(
-    null
-  );
-  const [currentFormData, setCurrentFormData] =
-    useState<CustomerSearchParams | null>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [searchParams, setSearchParams] = useState<SearchParams | null>(null);
-  const { data, isLoading, error } = useGoogleSearch(searchParams, {
-    enabled: !!searchParams,
+  const { searchPattern, setSearchPattern, searchPatterns, setSearchPatterns } =
+    useSearch();
+  const { data, isLoading, error } = useGoogleSearch(searchPattern, {
+    enabled: !!searchPattern,
   });
   console.log("data", data);
   const [mode, setMode] = useState<"full" | "sidebar">("full");
   useEffect(() => {
-    if (searchParams) {
+    if (searchPattern) {
       setMode("sidebar");
     } else {
-      setMode("full");
+      if (isNew) {
+        setMode("full");
+      } else {
+        setMode("sidebar");
+      }
     }
-  }, [searchParams]);
-  const [showModal, setShowModal] = useState(false);
-  console.log("showModal", showModal);
+  }, [searchPattern]);
+  console.log("SearchPatternPage searchPattern", searchPattern);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  // // 検索実行
-  // const handleSearchOld = (formData: CustomerSearchParams) => {
-  //   setCurrentFormData(formData);
-
-  //   // 既存パターンの場合、パラメータが変更されていれば更新
-  //   if (
-  //     currentPattern &&
-  //     JSON.stringify(formData) !== JSON.stringify(currentPattern.params)
-  //   ) {
-  //     updatePattern(currentPattern.id, { params: formData });
-  //   }
-
-  //   const searchParams = buildSearchQuery(formData);
-  // };
-  const handleSearch = (formData: SearchParams) => {
-    console.log("handleSubmit", formData);
+  const handleSearch = (formData: searchPattern) => {
+    console.log("SearchPatternPage handleSubmit", formData);
     window.scrollTo({ top: 0, behavior: "smooth" });
-    setSearchParams(formData);
+    setSearchPattern(formData);
   };
-
-  // パターン保存（新規作成時）
-  // const handleSavePattern = (name: string, description: string) => {
-  //   if (currentFormData) {
-  //     const newPattern = createPattern(name, description, currentFormData);
-  //     router.push(`/customer-searches/${newPattern.id}`);
-  //   }
-  // };
-
-  // パターン編集（既存パターン）
-  // const handleEditSave = (name: string, description: string) => {
-  //   if (currentPattern) {
-  //     updatePattern(currentPattern.id, { name, description });
-  //     setCurrentPattern({
-  //       ...currentPattern,
-  //       name,
-  //       description,
-  //     });
-  //   }
-  // };
-
-  // パターン削除
-  const handleDelete = () => {
-    if (currentPattern && confirm("このパターンを削除してもよろしいですか？")) {
-      deletePattern(currentPattern.id);
-      router.push("/customer-searches");
-    }
+  const handleSaveAs = (formData: searchPattern) => {
+    console.log("SearchPatternPage handleSaveAs", formData);
+    setSearchPatterns([...searchPatterns, formData]);
   };
-
-  const otherPatterns = currentPattern
-    ? patterns.filter((p) => p.id !== currentPattern.id)
-    : patterns;
 
   return (
-    // <SearchProvider>
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-4 py-8">
         <AnimatePresence mode="wait">
-          {!searchParams ? (
+          {mode === "full" ? (
             <motion.div
               key="search-form"
               initial={{ opacity: 0, y: 20 }}
@@ -125,25 +63,12 @@ export function SearchPatternPage({ searchId }: SearchPatternPageProps) {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
               className="mx-auto max-w-2xl "
-              // className="flex gap-4"
             >
-              {/* <SearchFormOld
-                initialData={currentPattern?.params}
-                onSubmit={handleSearchOld}
-                // isSearching={search.isSearching}
-                isNew={isNew}
-                showBackButton={true}
-                patternName={!isNew ? currentPattern?.name : undefined}
-                patternDescription={
-                  !isNew ? currentPattern?.description : undefined
-                }
-                onEdit={!isNew ? () => setShowEditModal(true) : undefined}
-                onDelete={!isNew ? handleDelete : undefined}
-              /> */}
               <SearchForm
                 handleSearch={handleSearch}
                 mode={mode}
                 isNew={isNew}
+                setShowDeleteModal={setShowDeleteModal}
               />
             </motion.div>
           ) : (
@@ -165,7 +90,7 @@ export function SearchPatternPage({ searchId }: SearchPatternPageProps) {
                   {/* <SearchResults
                     data={data}
                     isLoading={isLoading}
-                    closeSearch={() => setSearchParams(null)}
+                    closeSearch={() => setSearchPattern(null)}
                   /> */}
                 </motion.div>
 
@@ -181,36 +106,19 @@ export function SearchPatternPage({ searchId }: SearchPatternPageProps) {
                     <ScrollArea className="h-full overflow-y-auto">
                       {/* 検索フォーム（サイドバー版） */}
                       <Card className="w-72 mx-4 p-4">
-                        {/* <SearchFormOld
-                          mode="sidebar"
-                          initialData={
-                            currentPattern?.params || currentFormData
-                          }
-                          onSubmit={handleSearch}
-                          isSearching={search.isSearching}
-                          isNew={isNew}
-                          patternName={
-                            !isNew ? currentPattern?.name : undefined
-                          }
-                          patternDescription={
-                            !isNew ? currentPattern?.description : undefined
-                          }
-                          onEdit={
-                            !isNew ? () => setShowEditModal(true) : undefined
-                          }
-                          onDelete={!isNew ? handleDelete : undefined}
-                          onSave={isNew ? handleSavePattern : undefined}
-                        /> */}
                         <SearchForm
                           handleSearch={handleSearch}
                           mode={mode}
                           isNew={isNew}
-                          setShowModal={setShowModal}
+                          setShowSaveModal={setShowSaveModal}
+                          setShowEditModal={setShowEditModal}
+                          setShowDeleteModal={setShowDeleteModal}
+                          handleSaveAs={handleSaveAs}
                         />
                       </Card>
 
                       {/* パターン管理 */}
-                      {/* <RelatedPatterns patterns={otherPatterns} /> */}
+                      <RelatedPatterns />
                     </ScrollArea>
                   </div>
                 </motion.div>
@@ -219,17 +127,28 @@ export function SearchPatternPage({ searchId }: SearchPatternPageProps) {
           )}
         </AnimatePresence>
 
+        {/* 保存モーダル */}
+        <SearchPatternFormModal
+          isOpen={showSaveModal}
+          onClose={() => setShowSaveModal(false)}
+          currentName={searchPattern?.searchPatternName}
+          currentDescription={searchPattern?.searchPatternDescription}
+          mode="create"
+        />
         {/* 編集モーダル */}
         <SearchPatternFormModal
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          // onSave={handleEditSave}
-          currentName={currentPattern?.name}
-          currentDescription={currentPattern?.description}
-          mode={isNew ? "create" : "edit"}
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          currentName={searchPattern?.searchPatternName}
+          currentDescription={searchPattern?.searchPatternDescription}
+          mode="edit"
+        />
+        {/* 削除モーダル */}
+        <SearchPatternDeleteModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
         />
       </div>
     </div>
-    // </SearchProvider>
   );
 }

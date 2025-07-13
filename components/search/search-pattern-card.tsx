@@ -3,54 +3,68 @@
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
-import { SearchPattern } from "@/lib/types/search-pattern";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { searchPattern } from "@/lib/types/search";
 
 interface SearchPatternCardProps {
-  pattern: SearchPattern;
+  searchPattern: searchPattern;
   className?: string;
 }
 
 export function SearchPatternCard({
-  pattern,
+  searchPattern,
   className,
 }: SearchPatternCardProps) {
   // パターンの概要を生成
   const getPatternSummary = () => {
     const parts = [];
 
-    if (pattern.params.customerName) {
-      parts.push(`顧客名: ${pattern.params.customerName}`);
+    if (searchPattern.searchParams.customerName) {
+      parts.push(`顧客名: ${searchPattern.searchParams.customerName}`);
     }
 
-    if (pattern.params.prefecture || pattern.params.city) {
-      const location = [pattern.params.prefecture, pattern.params.city]
+    if (
+      searchPattern.searchParams.prefecture ||
+      searchPattern.searchParams.address
+    ) {
+      const location = [
+        searchPattern.searchParams.prefecture,
+        searchPattern.searchParams.address,
+      ]
         .filter(Boolean)
         .join(" ");
       if (location) parts.push(`地域: ${location}`);
     }
 
-    if (pattern.params.additionalKeywords.length > 0) {
-      const keywords = pattern.params.additionalKeywords
+    if (searchPattern.searchParams.additionalKeywords.length > 0) {
+      const keywords = searchPattern.searchParams.additionalKeywords
         .slice(0, 3)
         .map((k) => k.value)
         .join(", ");
       parts.push(`キーワード: ${keywords}`);
-      if (pattern.params.additionalKeywords.length > 3) {
-        parts.push(`他${pattern.params.additionalKeywords.length - 3}件`);
+      if (searchPattern.searchParams.additionalKeywords.length > 3) {
+        parts.push(
+          `他${searchPattern.searchParams.additionalKeywords.length - 3}件`
+        );
       }
     }
 
     return parts.join(" • ");
   };
 
-  const timeAgo = pattern.lastUsedAt
-    ? formatDistanceToNow(pattern.lastUsedAt, { addSuffix: true, locale: ja })
-    : formatDistanceToNow(pattern.createdAt, { addSuffix: true, locale: ja });
+  const timeAgo = searchPattern.lastUsedAt
+    ? formatDistanceToNow(searchPattern.lastUsedAt, {
+        addSuffix: true,
+        locale: ja,
+      })
+    : formatDistanceToNow(searchPattern.createdAt, {
+        addSuffix: true,
+        locale: ja,
+      });
 
   return (
-    <Link href={`/customer-searches/${pattern.id}`} className="block">
+    <Link href={`/customer-searches/${searchPattern.id}`} className="block">
       <Card
         className={cn(
           "transition-all hover:shadow-md hover:border-foreground/20 truncate",
@@ -58,19 +72,19 @@ export function SearchPatternCard({
         )}
       >
         <CardHeader className="pb-3">
-          <CardTitle>{pattern.name}</CardTitle>
+          <CardTitle>{searchPattern.searchPatternName}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          {pattern.description && (
+          {searchPattern.searchPatternDescription && (
             <p className="text-sm text-muted-foreground truncate">
-              {pattern.description}
+              {searchPattern.searchPatternDescription}
             </p>
           )}
           <p className="text-xs text-muted-foreground/80">
             {getPatternSummary()}
           </p>
           <p className="text-xs text-muted-foreground/60">
-            {pattern.lastUsedAt ? "使用" : "作成"}: {timeAgo}
+            {searchPattern.lastUsedAt ? "使用" : "作成"}: {timeAgo}
           </p>
         </CardContent>
       </Card>
