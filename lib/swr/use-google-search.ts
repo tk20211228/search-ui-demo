@@ -1,8 +1,9 @@
 'use client';
 
-import { searchPattern } from "@/lib/types/search";
+import {  GoogleSearchRequestResponse, searchPattern } from "@/lib/types/search";
 import useSWR from "swr";
 import { googleSearch } from "../actions/search";
+import { customsearch_v1 } from "@googleapis/customsearch";
 
 interface UseGoogleSearchOptions {
   enabled?: boolean;
@@ -25,7 +26,7 @@ export function useGoogleSearch(
   // const key = formData && enabled ? 'api/google-search' : null;
 
 
-  const { data, error, isLoading, isValidating, mutate } = useSWR(
+  const { data, error, isLoading, isValidating, mutate } = useSWR<GoogleSearchRequestResponse, Error>(
     key,
     () => googleSearch(formData!),
     {

@@ -5,6 +5,7 @@ import { additionalKeywordsSchema, matchTypeSchema, searchPatternSchema } from "
 export type GoogleSearchResult = customsearch_v1.Schema$Result;
 export type GoogleSearchRequestResponse = customsearch_v1.Schema$Search;
 
+
 // Search Parameters for API
 /**
  * カスタム検索APIのパラメータ。

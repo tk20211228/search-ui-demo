@@ -12,6 +12,7 @@ import { SearchForm } from "./search-form";
 import { useSearch } from "../providers/search";
 import { SearchPatternDeleteModal } from "./search-pattern-delete-modal";
 import { RelatedPatterns } from "./related-patterns";
+import { SearchResults } from "./search-results";
 
 export function SearchPatternPage() {
   // DB対応していないため、クライアント側でsearchIdをURLから取得する
@@ -25,6 +26,7 @@ export function SearchPatternPage() {
   });
   console.log("data", data);
   const [mode, setMode] = useState<"full" | "sidebar">("full");
+  const [shouldAnimate, setShouldAnimate] = useState(true);
   useEffect(() => {
     if (searchPattern) {
       setMode("sidebar");
@@ -35,7 +37,7 @@ export function SearchPatternPage() {
         setMode("sidebar");
       }
     }
-  }, [searchPattern]);
+  }, [searchPattern, isNew]);
   console.log("SearchPatternPage searchPattern", searchPattern);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -87,11 +89,14 @@ export function SearchPatternPage() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 }}
                 >
-                  {/* <SearchResults
+                  <SearchResults
                     data={data}
                     isLoading={isLoading}
-                    closeSearch={() => setSearchPattern(null)}
-                  /> */}
+                    closeSearch={() => {
+                      setSearchPattern(null);
+                      setMode("full");
+                    }}
+                  />
                 </motion.div>
 
                 {/* サイドバー */}

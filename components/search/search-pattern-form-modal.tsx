@@ -58,7 +58,9 @@ export function SearchPatternFormModal({
       formData.userId = "demo-user";
       formData.createdAt = new Date().toISOString();
       setSearchPatterns([...searchPatterns, formData]);
-      router.push(`/customer-searches/${searchId}`);
+      // router.push(`/customer-searches/${searchId}`);
+      // 履歴を置き換えてURLを変更（画面更新なし）
+      window.history.replaceState(null, "", `/customer-searches/${searchId}`);
       toast.success("検索パターンを保存しました");
     } else {
       setSearchPatterns(

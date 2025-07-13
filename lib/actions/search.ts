@@ -3,10 +3,10 @@
 import { createGoogleSearchClient } from '@/lib/google-custom-search/client';
 import {
   GoogleSearchRequestParams,
-  SearchParams
+  searchPattern
 } from '@/lib/types/search';
 
-export async function googleSearch(formData: SearchParams) {
+export async function googleSearch(formData: searchPattern) {
   const customSearch = await createGoogleSearchClient();
   const USER_INTERFACE_LANGUAGE = "ja";
   const MAX_RESULTS = 10;
@@ -30,10 +30,10 @@ export async function googleSearch(formData: SearchParams) {
   //   searchParams.siteSearchFilter = 'i';
   // }
 
-  // const response = await customSearch.cse.list(searchParams);
-  const response = {
-    data: formData,
-  };
+  const response = await customSearch.cse.list(searchParams);
+  // const response = {
+  //   data: formData,
+  // };
   console.log("response", response);
   return response.data;
 }
