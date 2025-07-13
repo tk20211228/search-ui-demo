@@ -3,11 +3,11 @@ import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="flex items-center justify-center bg-background mx-auto container">
       <div className="text-center space-y-8">
         <div className="space-y-4">
           <h1 className="text-4xl font-light tracking-tight text-foreground">
-            Customer Search System
+            Biz Search System
           </h1>
           <p className="text-lg text-muted-foreground">
             効率的な顧客情報検索システム

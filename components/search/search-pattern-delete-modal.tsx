@@ -28,7 +28,7 @@ export function SearchPatternDeleteModal({
 }: SearchPatternDeleteModalProps) {
   const [searchPatterns, setSearchPatterns] = useLocalStorageState<
     searchPattern[] | []
-  >("searchPatterns-new", {
+  >("searchPatterns", {
     defaultValue: [],
   });
   const router = useRouter();

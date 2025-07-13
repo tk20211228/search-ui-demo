@@ -2,35 +2,110 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { GoogleSearchRequestResponse } from "@/lib/types/search";
 import { cn } from "@/lib/utils";
-import { ExternalLink, RotateCcw } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import Link from "next/link";
 
 interface SearchResultsProps {
   data?: GoogleSearchRequestResponse;
   isLoading: boolean;
   closeSearch: () => void;
+  handlePageChange: (newStart: number) => void;
+  currentStart: number;
+  error?: Error; // エラープロパティを追加
 }
 
 export function SearchResults({
   data,
   isLoading,
   closeSearch,
+  handlePageChange,
+  currentStart,
+  error,
 }: SearchResultsProps) {
+  // ページネーション情報の計算
+  const resultsPerPage = 10;
+  const currentPage = Math.ceil(currentStart / resultsPerPage);
+  const totalResults = data?.searchInformation?.totalResults
+    ? parseInt(data.searchInformation.totalResults)
+    : 0;
+  const totalPages = Math.ceil(totalResults / resultsPerPage);
+
+  // Google Custom Search APIの制限について：
+  // - 最大100件の結果まで取得可能（start=91, num=10が最後のページ）
+  // - start=101以降は「Request contains an invalid argument」エラーが発生
+  // - 実際のテストでもstart=101でエラーが確認されている
+  const maxPages = Math.min(totalPages, 10); // 10ページまでに制限
+
+  // ページネーションのページ番号を生成
+  const getPageNumbers = () => {
+    const pages: number[] = [];
+    // モバイルでは表示ページ数を減らす
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+    const range = isMobile ? 1 : 2;
+    const startPage = Math.max(1, currentPage - range);
+    const endPage = Math.min(maxPages, currentPage + range);
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      const newStart = (currentPage - 2) * resultsPerPage + 1;
+      handlePageChange(newStart);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < maxPages) {
+      const newStart = currentPage * resultsPerPage + 1;
+      handlePageChange(newStart);
+    }
+  };
+
+  const handlePageClick = (page: number) => {
+    const newStart = (page - 1) * resultsPerPage + 1;
+    handlePageChange(newStart);
+  };
+
+  const handlePaginationClick = (e: React.MouseEvent, action: () => void) => {
+    e.preventDefault();
+    action();
+  };
+
+  // API制限に関するチェック
+  const isNearApiLimit = currentStart > 80; // 8ページ目以降で警告
+  const isPastApiLimit = currentStart > 100; // 10ページ目以降（実際にはエラーになる）
+
   return (
     <div className="w-full" data-search-results>
-      <div className="sticky top-0 pb-6 -mt-8 pt-8 z-10 bg-background/50 backdrop-blur-sm">
-        <div className="flex items-center justify-between">
+      <div className="sticky top-15 pb-4 sm:pb-6 -mt-8 pt-8 z-10 bg-background/50 backdrop-blur-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold">
+            <h2 className="text-xl sm:text-2xl font-semibold">
               検索結果
-              <span className="text-sm text-muted-foreground ml-2">
+              <span className="text-xs sm:text-sm text-muted-foreground ml-2">
                 ({data?.searchInformation?.formattedTotalResults} 件)
               </span>
             </h2>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               検索項目：{data?.queries?.request?.[0].searchTerms}
+            </p>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+              除外項目：{data?.queries?.request?.[0].excludeTerms}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -41,12 +116,42 @@ export function SearchResults({
               title="Reset search"
               className="text-muted-foreground hover:text-foreground"
             >
-              <RotateCcw className="mr-2 h-4 w-4" />
-              リセット
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">戻る</span>
             </Button>
           </div>
         </div>
       </div>
+
+      {/* エラー表示 */}
+      {error && (
+        <div className="mb-4 p-4 border border-red-200 rounded-lg bg-red-50">
+          <div className="flex items-center gap-2 text-red-700">
+            <span className="text-sm">⚠️</span>
+            <div>
+              <p className="text-sm font-medium">検索でエラーが発生しました</p>
+              <p className="text-xs text-red-600 mt-1">
+                {isPastApiLimit
+                  ? "Google Custom Search APIの制限により、これ以上の結果を取得できません。検索条件を絞り込んでください。"
+                  : error.message}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* API制限警告 */}
+      {isNearApiLimit && !error && (
+        <div className="mb-4 p-4 border border-yellow-200 rounded-lg bg-yellow-50">
+          <div className="flex items-center gap-2 text-yellow-700">
+            <span className="text-sm">💡</span>
+            <p className="text-sm">
+              Google Custom Search
+              APIの制限に近づいています。10ページ目以降は結果を取得できません。
+            </p>
+          </div>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="space-y-4">
@@ -82,30 +187,31 @@ export function SearchResults({
                     "relative"
                   )}
                 >
-                  <CardContent className="p-6 flex gap-4">
-                    <div className="space-y-3">
+                  <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row gap-4">
+                    <div className="flex-1 space-y-3">
                       <div>
                         <Link
                           href={item.link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-4"
+                          className="inline-flex items-center gap-2 sm:gap-4"
                         >
-                          <h3 className="text-lg font-medium hover:underline inline-flex items-center gap-1">
+                          <h3 className="text-base sm:text-lg font-medium hover:underline inline-flex items-center gap-1">
                             {item.title}
+                            <span className="absolute inset-0" />
                           </h3>
-                          <ExternalLink className="size-3" />
+                          <ExternalLink className="size-3 flex-shrink-0" />
                         </Link>
-
-                        <p className="text-sm text-foreground/80">
-                          {item.displayLink || item.link}
-                        </p>
                       </div>
+                      <p className="text-xs sm:text-sm text-foreground/80">
+                        {item.displayLink || item.link}
+                      </p>
                       <div
                         className={cn(
                           "prose prose-sm max-w-none",
                           "dark:prose-invert",
-                          "line-clamp-3"
+                          "line-clamp-2 sm:line-clamp-3",
+                          "text-xs sm:text-sm"
                         )}
                         dangerouslySetInnerHTML={{
                           __html: item.htmlSnippet || item.snippet || "",
@@ -117,22 +223,12 @@ export function SearchResults({
                       <img
                         src={image}
                         alt={item.title || "Search result image"}
-                        className={`aspect-video object-cover rounded-md h-35 
-                        border-muted-foreground/20 border                       
-                          `}
+                        className="aspect-video object-cover rounded-md w-full sm:w-24 sm:h-16 md:w-32 md:h-20 lg:w-40 lg:h-28 border-muted-foreground/20 border flex-shrink-0 order-first sm:order-last"
                         onError={(e) => {
                           e.currentTarget.style.display = "none";
                         }}
                       />
                     )}
-                    <Link
-                      href={item.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="absolute inset-0"
-                    >
-                      <span className="absolute inset-0" />
-                    </Link>
                   </CardContent>
                 </Card>
               )
@@ -142,27 +238,79 @@ export function SearchResults({
       )}
 
       {/* ページネーション機能 */}
-      {/* {!search.isSearching && search.results.length > 0 && (
-        <div className="flex justify-center mt-8">
-          <nav className="flex gap-2">
-            <Button variant="outline" size="sm" disabled>
-              Previous
-            </Button>
-            <Button variant="outline" size="sm">
-              1
-            </Button>
-            <Button variant="ghost" size="sm">
-              2
-            </Button>
-            <Button variant="ghost" size="sm">
-              3
-            </Button>
-            <Button variant="outline" size="sm">
-              Next
-            </Button>
-          </nav>
+      {!isLoading && data?.items && data.items.length > 0 && maxPages > 1 && (
+        <div className="mt-8 space-y-4">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => handlePaginationClick(e, handlePreviousPage)}
+                  className={cn(
+                    "cursor-pointer",
+                    currentPage <= 1 && "opacity-50 cursor-not-allowed"
+                  )}
+                  aria-disabled={currentPage <= 1}
+                />
+              </PaginationItem>
+
+              {getPageNumbers().map((page) => (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    href="#"
+                    onClick={(e) =>
+                      handlePaginationClick(e, () => handlePageClick(page))
+                    }
+                    isActive={page === currentPage}
+                    className="cursor-pointer"
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+
+              {currentPage < maxPages - 2 && (
+                <PaginationItem className="hidden sm:block">
+                  <PaginationEllipsis />
+                </PaginationItem>
+              )}
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => handlePaginationClick(e, handleNextPage)}
+                  className={cn(
+                    "cursor-pointer",
+                    currentPage >= maxPages && "opacity-50 cursor-not-allowed"
+                  )}
+                  aria-disabled={currentPage >= maxPages}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+
+          {/* Google Custom Search APIの制限に関する説明 */}
+          {currentPage >= maxPages && totalResults > 100 && (
+            <div className="text-center text-sm text-muted-foreground">
+              <p>
+                💡 Google Custom Search
+                APIの制限により、最大100件（10ページ）までの結果を表示しています。
+                <br />
+                より多くの結果を確認するには、検索条件を絞り込んでください。
+              </p>
+            </div>
+          )}
+
+          {/* 結果数の表示 */}
+          <div className="text-center text-sm text-muted-foreground">
+            <p>
+              {currentStart}件目～
+              {Math.min(currentStart + resultsPerPage - 1, totalResults)}件目
+              （全{data?.searchInformation?.formattedTotalResults}件中）
+            </p>
+          </div>
         </div>
-      )} */}
+      )}
     </div>
   );
 }

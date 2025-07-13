@@ -6,12 +6,13 @@ export const DEFAULT_SEARCH_PARAMS: searchPattern = {
   searchPatternName: "新規検索パターン",
   searchPatternDescription: "",
   searchParams: {
-    customerName: "薮田大地",
+    customerName: "", //薮田大地
     customerNameExactMatch: "exact",
-    prefecture: "none",
+    prefecture: "選択しない",
     prefectureExactMatch: "exact",
     address: "",
     addressExactMatch: "exact",
+    isAdvancedSearchEnabled: false,
     additionalKeywords: [
       {
         value: "代表取締役",
@@ -27,14 +28,14 @@ export const DEFAULT_SEARCH_PARAMS: searchPattern = {
       },
     ],
     additionalKeywordsSearchMode: "and",
+    excludeKeywords: [{
+      value: "東京都",
+      matchType: "exact",
+    },],
     searchSites: ["facebook.com", "linkedin.com", "nikkei.com"],
     siteSearchMode: "any",
   },
   createdAt: "",
-  updatedAt: undefined,
-  lastUsedAt: undefined,
+  updatedAt: "",
+  lastUsedAt: "",
 };
-
-// 部分的リセット用の定数も定義
-export const DEFAULT_ADDITIONAL_KEYWORDS = DEFAULT_SEARCH_PARAMS.searchParams.additionalKeywords;
-export const DEFAULT_SEARCH_SITES = DEFAULT_SEARCH_PARAMS.searchParams.searchSites;

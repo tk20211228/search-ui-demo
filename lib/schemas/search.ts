@@ -2,29 +2,28 @@ import { z } from "zod";
 import { prefectures } from "../data/search";
 
 export const matchTypeSchema = z.enum(['exact', 'partial']);
-export const additionalKeywordsSchema = z.object({
+export const keywordsSchema = z.object({
   value: z.string(),
   matchType: matchTypeSchema,
 })
 
-export const searchModeSchema = z.enum(['and', 'or']);
+const searchModeSchema = z.enum(['and', 'or']);
 
-export const nameSchema = z.string().trim()
+const nameSchema = z.string().trim()
   .min(1, { message: "1文字以上入力してください" })
   .max(256, { message: "256文字以内で入力してください" });
 
-export const searchParamsSchema = z.object({
+const searchParamsSchema = z.object({
   customerName: nameSchema,
   customerNameExactMatch: matchTypeSchema,
-  prefecture: z.union([
-    z.literal("none"),
-    z.enum(prefectures)
-  ]).optional(),
+  prefecture: z.enum(prefectures),
   prefectureExactMatch: matchTypeSchema,
   address: z.string().trim().optional(),
   addressExactMatch: matchTypeSchema,
-  additionalKeywords: z.array(additionalKeywordsSchema),
+  isAdvancedSearchEnabled: z.boolean(),
+  additionalKeywords: z.array(keywordsSchema),
   additionalKeywordsSearchMode: searchModeSchema,
+  excludeKeywords: z.array(keywordsSchema),
   searchSites: z.array(z.string()),
   siteSearchMode: z.enum(['any', 'specific', 'exclude']),
 });
@@ -37,7 +36,7 @@ export const searchPatternSchema = z.object({
   searchPatternDescription: searchPatternDescriptionSchema,
   searchParams: searchParamsSchema,
   createdAt: z.string(),
-  updatedAt: z.string().optional(),
-  lastUsedAt: z.string().optional(),
+  updatedAt: z.string(),
+  lastUsedAt: z.string(),
 });
 
