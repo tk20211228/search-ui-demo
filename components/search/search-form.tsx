@@ -1,23 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
 import {
-  Search,
-  ChevronDown,
-  ChevronUp,
-  ChevronLeft,
-  MoreHorizontal,
-  Edit2,
-  Trash2,
-  Save,
-  SaveAllIcon,
-  SaveIcon,
-  MoreHorizontalIcon,
-  AsteriskIcon,
-} from "lucide-react";
-import Link from "next/link";
-import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -26,44 +14,39 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { TagInput } from "@/components/ui/tag-input";
 import { TagInputElegant } from "@/components/ui/tag-input-elegant";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { CustomerSearchParams } from "@/lib/types/search-pattern";
-import { prefectures } from "@/lib/data/search";
-import { SearchPatternFormModal } from "@/components/search/search-pattern-form-modal";
-import { Separator } from "@/components/ui/separator";
-import { useForm, useFormContext, useFormState } from "react-hook-form";
-import z from "zod";
-import { searchParamsSchema, searchPatternSchema } from "@/lib/schemas/search";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form } from "../ui/form";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-  FormMessage,
-} from "@/components/ui/form";
-import { useSearch } from "@/lib/hooks/use-search";
-import { searchPattern } from "@/lib/types/search";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { DEFAULT_SEARCH_PARAMS } from "@/lib/constants/search";
-import { SearchProvider } from "../providers/search";
-import { useSearchParams } from "next/navigation";
+import { prefectures } from "@/lib/data/search";
+import { searchPattern } from "@/lib/types/search";
+import { cn } from "@/lib/utils";
+import {
+  ArrowLeft,
+  Edit2,
+  MoreHorizontalIcon,
+  SaveIcon,
+  Search,
+  Trash2,
+} from "lucide-react";
+import Link from "next/link";
+import { useFormContext } from "react-hook-form";
 
 interface SearchFormProps {
   mode: "full" | "sidebar";
@@ -76,7 +59,6 @@ interface SearchFormProps {
   setShowSaveModal?: (show: boolean) => void;
   setShowEditModal?: (show: boolean) => void;
   setShowDeleteModal?: (show: boolean) => void;
-  handleSaveAs?: (params: searchPattern) => void;
 }
 
 export function SearchForm({
@@ -86,8 +68,11 @@ export function SearchForm({
   setShowSaveModal,
   setShowEditModal,
   setShowDeleteModal,
-  handleSaveAs,
 }: SearchFormProps) {
+  // console.log("mode", mode);
+  const form = useFormContext<searchPattern>();
+  const prefecture = form.watch("searchParams.prefecture");
+  // console.log("prefecture", prefecture);
   // スタイル定義
   const styles = {
     form: cn(
@@ -124,8 +109,9 @@ export function SearchForm({
     input: cn(mode === "sidebar" ? "h-9 text-sm" : "pr-10"),
     radioGroup: cn("flex", mode === "sidebar" ? "gap-4 text-xs" : "gap-6"),
     radioLabel: cn(
-      "cursor-pointer",
-      mode === "sidebar" ? "text-xs" : "text-sm"
+      "cursor-pointer text-muted-foreground",
+      mode === "sidebar" ? "text-xs" : "text-sm",
+      "peer-data-[state=checked]:text-foreground"
     ),
     addressGrid: cn(
       "grid",
@@ -145,26 +131,40 @@ export function SearchForm({
     submitButton: cn("w-full"),
     submitButtonSize: (mode === "sidebar" ? "sm" : "lg") as "sm" | "lg",
   };
-  const form = useFormContext<searchPattern>();
+
   const { isSubmitting, isValidating } = form.formState;
   const searchPatternName = form.watch("searchPatternName");
   const searchPatternDescription = form.watch("searchPatternDescription");
-  const defaultKeywords = DEFAULT_SEARCH_PARAMS.searchParams.additionalKeywords;
+  const defaultAdditionalKeywords =
+    DEFAULT_SEARCH_PARAMS.searchParams.additionalKeywords;
+  const defaultExcludeKeywords =
+    DEFAULT_SEARCH_PARAMS.searchParams.excludeKeywords;
   const defaultSites = DEFAULT_SEARCH_PARAMS.searchParams.searchSites;
-
   return (
     <>
-      <form onSubmit={form.handleSubmit(handleSearch)} className={styles.form}>
+      <form
+        onSubmit={form.handleSubmit(handleSearch, (errors) => {
+          console.log("errors", errors);
+        })}
+        className={styles.form}
+      >
         {/* 戻るボタン（フル版のみ） */}
         {mode === "full" && (
           <div className="flex w-full bg-bg-100 h-12 mx-auto md:h-24 md:items-end">
-            <Link
-              href="/customer-searches"
-              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              onClick={() => form.reset()}
             >
-              <ChevronLeft className="mr-1 size-4" />
-              戻る
-            </Link>
+              <Link
+                href="/customer-searches"
+                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="mr-1 size-4" />
+                戻る
+              </Link>
+            </Button>
           </div>
         )}
 
@@ -272,7 +272,7 @@ export function SearchForm({
                     >
                       <FormItem className="flex items-center gap-2">
                         <FormControl>
-                          <RadioGroupItem value="exact" />
+                          <RadioGroupItem value="exact" className="peer" />
                         </FormControl>
                         <FormLabel className={styles.radioLabel}>
                           完全一致
@@ -280,7 +280,7 @@ export function SearchForm({
                       </FormItem>
                       <FormItem className="flex items-center gap-2">
                         <FormControl>
-                          <RadioGroupItem value="partial" />
+                          <RadioGroupItem value="partial" className="peer" />
                         </FormControl>
                         <FormLabel className={styles.radioLabel}>
                           部分一致
@@ -310,16 +310,21 @@ export function SearchForm({
                     <FormItem>
                       <FormControl>
                         <Select
-                          value={field.value}
+                          defaultValue={field.value}
                           onValueChange={field.onChange}
                         >
                           <SelectTrigger className={styles.selectTrigger}>
-                            <SelectValue placeholder="都道府県を選択" />
+                            <SelectValue
+                              placeholder={
+                                mode === "sidebar"
+                                  ? "都道府県"
+                                  : "都道府県を選択"
+                              }
+                            />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="none">選択しない</SelectItem>
-                            {prefectures.map((pref) => (
-                              <SelectItem key={pref} value={pref}>
+                            {prefectures.map((pref, index) => (
+                              <SelectItem key={index} value={pref}>
                                 {pref}
                               </SelectItem>
                             ))}
@@ -342,7 +347,7 @@ export function SearchForm({
                         >
                           <FormItem className="flex items-center gap-2">
                             <FormControl>
-                              <RadioGroupItem value="exact" />
+                              <RadioGroupItem value="exact" className="peer" />
                             </FormControl>
                             <FormLabel className={styles.radioLabel}>
                               {mode === "full" ? "完全一致" : "完全"}
@@ -350,7 +355,10 @@ export function SearchForm({
                           </FormItem>
                           <FormItem className="flex items-center gap-2">
                             <FormControl>
-                              <RadioGroupItem value="partial" />
+                              <RadioGroupItem
+                                value="partial"
+                                className="peer"
+                              />
                             </FormControl>
                             <FormLabel className={styles.radioLabel}>
                               {mode === "full" ? "部分一致" : "部分"}
@@ -397,7 +405,7 @@ export function SearchForm({
                         >
                           <FormItem className="flex items-center gap-2">
                             <FormControl>
-                              <RadioGroupItem value="exact" />
+                              <RadioGroupItem value="exact" className="peer" />
                             </FormControl>
                             <FormLabel className={styles.radioLabel}>
                               {mode === "full" ? "完全一致" : "完全"}
@@ -405,7 +413,10 @@ export function SearchForm({
                           </FormItem>
                           <FormItem className="flex items-center gap-2">
                             <FormControl>
-                              <RadioGroupItem value="partial" />
+                              <RadioGroupItem
+                                value="partial"
+                                className="peer"
+                              />
                             </FormControl>
                             <FormLabel className={styles.radioLabel}>
                               {mode === "full" ? "部分一致" : "部分"}
@@ -425,7 +436,7 @@ export function SearchForm({
         <Accordion type="single" collapsible>
           <AccordionItem value="item-2">
             <AccordionTrigger
-              className={`bg-muted/50 px-6 
+              className={`bg-muted/50 px-6
               dark:hover:bg-muted transition-colors 
               [&[data-state=open]]:rounded-b-none
               dark:[&[data-state=open]]:bg-muted
@@ -435,12 +446,12 @@ export function SearchForm({
             </AccordionTrigger>
             <AccordionContent
               className={`
-              bg-muted/50 pb-4 rounded-b-lg px-6
+              bg-muted/50 pb-4 rounded-b-lg px-6 pt-2
               dark:[&[data-state=open]]:bg-muted
               `}
             >
               {/* 追加キーワード */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label className={styles.label}>
                   追加キーワード{mode === "full" && "（任意）"}
                 </Label>
@@ -452,12 +463,12 @@ export function SearchForm({
                     <FormItem>
                       <FormControl>
                         <TagInputElegant
-                          additionalKeywords={field.value || []}
+                          keywords={field.value || []}
                           onChange={field.onChange}
                           placeholder={
                             mode === "sidebar" ? "役職など" : "会社名、役職など"
                           }
-                          defaultKeywords={defaultKeywords}
+                          defaultKeywords={defaultAdditionalKeywords}
                         />
                       </FormControl>
                     </FormItem>
@@ -471,19 +482,13 @@ export function SearchForm({
                     <FormItem>
                       <FormControl>
                         <RadioGroup
-                          // value={field.value}
-                          // onValueChange={field.onChange}
+                          value={field.value}
+                          onValueChange={field.onChange}
                           className={cn(
                             "mt-2",
                             mode === "sidebar" && "flex gap-3"
                           )}
-                          // defaultValue={"or"}
                         >
-                          {mode === "full" && (
-                            <Label className="mb-2 block text-sm">
-                              キーワード検索モード
-                            </Label>
-                          )}
                           <div
                             className={
                               mode === "sidebar" ? "flex gap-3" : "flex gap-6"
@@ -491,7 +496,7 @@ export function SearchForm({
                           >
                             <FormItem className="flex items-center space-x-2">
                               <FormControl>
-                                <RadioGroupItem value="and" />
+                                <RadioGroupItem value="and" className="peer" />
                               </FormControl>
                               <FormLabel className={styles.radioLabel}>
                                 {mode === "sidebar"
@@ -501,7 +506,7 @@ export function SearchForm({
                             </FormItem>
                             <FormItem className="flex items-center space-x-2">
                               <FormControl>
-                                <RadioGroupItem value="or" />
+                                <RadioGroupItem value="or" className="peer" />
                               </FormControl>
                               <FormLabel className={styles.radioLabel}>
                                 {mode === "sidebar"
@@ -515,7 +520,31 @@ export function SearchForm({
                     </FormItem>
                   )}
                 />
-                {mode === "sidebar" && <Separator className="my-4" />}
+                <Separator className="my-4" />
+
+                <Label className={styles.label}>
+                  除外キーワード{mode === "full" && "（任意）"}
+                </Label>
+
+                <FormField
+                  control={form.control}
+                  name="searchParams.excludeKeywords"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <TagInputElegant
+                          keywords={field.value || []}
+                          onChange={field.onChange}
+                          placeholder={
+                            mode === "sidebar" ? "東京都" : "東京都、大阪府など"
+                          }
+                          defaultKeywords={defaultExcludeKeywords}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <Separator className="my-4" />
                 {/* 検索対象サイト */}
                 <Label className={styles.label}>検索対象サイト</Label>
 
@@ -551,19 +580,10 @@ export function SearchForm({
                           onValueChange={field.onChange}
                           className={cn("mt-4", mode === "sidebar" && "mt-2")}
                         >
-                          {mode === "full" && (
-                            <Label className="mb-2 block text-sm">
-                              サイト検索モード
-                            </Label>
-                          )}
-                          <div
-                            className={
-                              mode === "sidebar" ? "flex gap-2" : "space-y-2"
-                            }
-                          >
+                          <div className="flex gap-6">
                             <FormItem className="flex items-center space-x-2">
                               <FormControl>
-                                <RadioGroupItem value="any" />
+                                <RadioGroupItem value="any" className="peer" />
                               </FormControl>
                               <FormLabel className={styles.radioLabel}>
                                 {mode === "sidebar" ? "全て" : "すべてのサイト"}
@@ -571,17 +591,21 @@ export function SearchForm({
                             </FormItem>
                             <FormItem className="flex items-center space-x-2">
                               <FormControl>
-                                <RadioGroupItem value="specific" />
+                                <RadioGroupItem
+                                  value="specific"
+                                  className="peer"
+                                />
                               </FormControl>
                               <FormLabel className={styles.radioLabel}>
-                                {mode === "sidebar"
-                                  ? "指定"
-                                  : "指定サイトのみ（OR検索）"}
+                                {mode === "sidebar" ? "指定" : "指定サイトのみ"}
                               </FormLabel>
                             </FormItem>
                             <FormItem className="flex items-center space-x-2">
                               <FormControl>
-                                <RadioGroupItem value="exclude" />
+                                <RadioGroupItem
+                                  value="exclude"
+                                  className="peer"
+                                />
                               </FormControl>
                               <FormLabel className={styles.radioLabel}>
                                 {mode === "sidebar"
@@ -623,19 +647,6 @@ export function SearchForm({
           )}
         </Button>
       </form>
-
-      {/* 保存モーダル */}
-      {/* {isNew && onSave && (
-        <SearchPatternFormModal
-          isOpen={showSaveModal}
-          onClose={() => {
-            console.log("onClose");
-            setShowSaveModal(false);
-          }}
-          // onSave={onSave}
-          mode="create"
-        />
-      )} */}
     </>
   );
 }

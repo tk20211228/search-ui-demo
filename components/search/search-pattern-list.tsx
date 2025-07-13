@@ -1,7 +1,5 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -10,57 +8,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SearchPattern } from "@/lib/types/search-pattern";
+import { searchPattern } from "@/lib/types/search";
+import { Search } from "lucide-react";
+import { useMemo, useState } from "react";
+import useLocalStorageState from "use-local-storage-state";
 import { SearchPatternCard } from "./search-pattern-card";
 
-interface SearchPatternListProps {
-  patterns: SearchPattern[];
-}
-
-type SortOption = "recent-activity" | "recent-created" | "alphabetical";
-
-export function SearchPatternList({ patterns }: SearchPatternListProps) {
+export function SearchPatternList() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<SortOption>("recent-activity");
+  const [searchPatterns, setSearchPatterns] = useLocalStorageState<
+    searchPattern[]
+  >("searchPatterns-new", {
+    defaultValue: [],
+  });
 
-  // パターンのフィルタリングとソート
+  const [sortBy, setSortBy] = useState<string>("recent-activity");
+
   const filteredAndSortedPatterns = useMemo(() => {
-    // フィルタリング
-    let filtered = patterns;
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = patterns.filter((pattern) => {
-        return (
-          pattern.name.toLowerCase().includes(query) ||
-          pattern.description?.toLowerCase().includes(query) ||
-          pattern.params.customerName?.toLowerCase().includes(query) ||
-          pattern.params.additionalKeywords.some((k) =>
-            k.value.toLowerCase().includes(query)
-          )
-        );
-      });
-    }
+    const filtered = searchPatterns.filter((pattern) =>
+      pattern.searchPatternName
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
+    );
 
-    // ソート
-    const sorted = [...filtered];
-    switch (sortBy) {
-      case "recent-activity":
-        sorted.sort((a, b) => {
-          const aTime = a.lastUsedAt || a.createdAt;
-          const bTime = b.lastUsedAt || b.createdAt;
-          return bTime.getTime() - aTime.getTime();
-        });
-        break;
-      case "recent-created":
-        sorted.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-        break;
-      case "alphabetical":
-        sorted.sort((a, b) => a.name.localeCompare(b.name, "ja"));
-        break;
-    }
-
-    return sorted;
-  }, [patterns, searchQuery, sortBy]);
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "recent-activity":
+          return (
+            new Date(b.lastUsedAt).getTime() - new Date(a.lastUsedAt).getTime()
+          );
+        case "recent-created":
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        case "alphabetical":
+          return a.searchPatternName.localeCompare(b.searchPatternName);
+        default:
+          return 0;
+      }
+    });
+  }, [searchPatterns, searchQuery, sortBy]);
+  const handleSortBy = (value: string) => {
+    setSortBy(value);
+  };
 
   return (
     <div className="space-y-6 px-4">
@@ -78,10 +68,7 @@ export function SearchPatternList({ patterns }: SearchPatternListProps) {
 
       <div className="flex items-center justify-end gap-2">
         <span className="text-sm text-muted-foreground">並び替え</span>
-        <Select
-          value={sortBy}
-          onValueChange={(value) => setSortBy(value as SortOption)}
-        >
+        <Select value={sortBy} onValueChange={handleSortBy}>
           <SelectTrigger className="w-[180px]">
             <SelectValue />
           </SelectTrigger>
@@ -107,7 +94,7 @@ export function SearchPatternList({ patterns }: SearchPatternListProps) {
       ) : (
         <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
           {filteredAndSortedPatterns.map((pattern) => (
-            <SearchPatternCard key={pattern.id} pattern={pattern} />
+            <SearchPatternCard key={pattern.id} searchPattern={pattern} />
           ))}
         </div>
       )}

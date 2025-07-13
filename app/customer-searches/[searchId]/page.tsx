@@ -7,12 +7,5 @@ export default async function SearchPatternDetailPage({
 }: {
   params: Promise<RouteParams>;
 }) {
-  const { searchId } = await params;
-  console.log("searchId", searchId);
-
-  return (
-    // <SearchProvider>
-    <SearchPatternPage />
-    // </SearchProvider>
-  );
+  return <SearchPatternPage />;
 }

@@ -9,18 +9,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { AdditionalKeywords } from "@/lib/types/search";
+import { Keywords } from "@/lib/types/search";
 
 interface TagInputElegantProps {
-  additionalKeywords: AdditionalKeywords[];
-  onChange: (tags: AdditionalKeywords[]) => void;
+  keywords: Keywords[];
+  onChange: (tags: Keywords[]) => void;
   placeholder?: string;
   className?: string;
-  defaultKeywords?: AdditionalKeywords[];
+  defaultKeywords?: Keywords[];
 }
 
 export function TagInputElegant({
-  additionalKeywords = [],
+  keywords = [],
   onChange,
   placeholder = "キーワードを入力してEnter",
   className,
@@ -31,15 +31,9 @@ export function TagInputElegant({
 
   const addTag = (input: string) => {
     const trimmedValue = input.trim();
-    if (
-      trimmedValue &&
-      !additionalKeywords.some((tag) => tag.value === trimmedValue)
-    ) {
+    if (trimmedValue && !keywords.some((tag) => tag.value === trimmedValue)) {
       // 新規タグはデフォルトで完全一致
-      onChange([
-        ...additionalKeywords,
-        { value: trimmedValue, matchType: "exact" },
-      ]);
+      onChange([...keywords, { value: trimmedValue, matchType: "exact" }]);
       setInputValue("");
     }
   };
@@ -64,21 +58,17 @@ export function TagInputElegant({
     if (e.key === "Enter" && inputValue.trim()) {
       e.preventDefault();
       addTag(inputValue);
-    } else if (
-      e.key === "Backspace" &&
-      !inputValue &&
-      additionalKeywords.length > 0
-    ) {
-      onChange(additionalKeywords.slice(0, -1));
+    } else if (e.key === "Backspace" && !inputValue && keywords.length > 0) {
+      onChange(keywords.slice(0, -1));
     }
   };
 
   const removeTag = (indexToRemove: number) => {
-    onChange(additionalKeywords.filter((_, index) => index !== indexToRemove));
+    onChange(keywords.filter((_, index) => index !== indexToRemove));
   };
 
   const toggleMatchType = (index: number) => {
-    const newTags = [...additionalKeywords];
+    const newTags = [...keywords];
     newTags[index] = {
       ...newTags[index],
       matchType: newTags[index].matchType === "partial" ? "exact" : "partial",
@@ -95,7 +85,7 @@ export function TagInputElegant({
         )}
         onClick={() => inputRef.current?.focus()}
       >
-        {additionalKeywords.map((tag, index) => (
+        {keywords.map((tag, index) => (
           <span
             key={index}
             className={cn(
@@ -162,7 +152,7 @@ export function TagInputElegant({
             value={inputValue}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder={additionalKeywords.length === 0 ? placeholder : ""}
+            placeholder={keywords.length === 0 ? placeholder : ""}
             className="flex-1 min-w-[100px] bg-transparent outline-none placeholder:text-muted-foreground dark:placeholder:text-muted-foreground"
           />
           {inputValue.trim() && (
@@ -178,7 +168,7 @@ export function TagInputElegant({
         </div>
       </div>
       <div className="flex items-center gap-2 mt-2">
-        {additionalKeywords.length > 0 && (
+        {keywords.length > 0 && (
           <button
             type="button"
             className="text-xs text-muted-foreground hover:text-foreground dark:text-muted-foreground dark:hover:text-foreground transition-colors"
@@ -187,7 +177,7 @@ export function TagInputElegant({
             すべてクリア
           </button>
         )}
-        {additionalKeywords.length > 0 && (
+        {keywords.length > 0 && (
           <span className="text-xs text-muted-foreground">•</span>
         )}
         {defaultKeywords.length > 0 && (

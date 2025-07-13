@@ -6,6 +6,8 @@ import { ja } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { searchPattern } from "@/lib/types/search";
+import { useRouter } from "next/navigation";
+import { useFormContext } from "react-hook-form";
 
 interface SearchPatternCardProps {
   searchPattern: searchPattern;
@@ -16,6 +18,7 @@ export function SearchPatternCard({
   searchPattern,
   className,
 }: SearchPatternCardProps) {
+  const router = useRouter();
   // パターンの概要を生成
   const getPatternSummary = () => {
     const parts = [];
@@ -62,32 +65,39 @@ export function SearchPatternCard({
         addSuffix: true,
         locale: ja,
       });
+  const form = useFormContext<searchPattern>();
+  const currentSearchCustomerName = form.getValues("searchParams.customerName");
 
   return (
-    <Link href={`/customer-searches/${searchPattern.id}`} className="block">
-      <Card
-        className={cn(
-          "transition-all hover:shadow-md hover:border-foreground/20 truncate",
-          className
+    <Card
+      className={cn(
+        "transition-all hover:shadow-md hover:border-foreground/20 truncate relative",
+        className
+      )}
+    >
+      <CardHeader className="pb-3 flex items-start">
+        <Link
+          href={`/customer-searches/${searchPattern.id}?customerName=${currentSearchCustomerName}`}
+        >
+          <CardTitle>
+            {searchPattern.searchPatternName}
+            <span className="absolute inset-0" />
+          </CardTitle>
+        </Link>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {searchPattern.searchPatternDescription && (
+          <p className="text-sm text-muted-foreground truncate">
+            {searchPattern.searchPatternDescription}
+          </p>
         )}
-      >
-        <CardHeader className="pb-3">
-          <CardTitle>{searchPattern.searchPatternName}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {searchPattern.searchPatternDescription && (
-            <p className="text-sm text-muted-foreground truncate">
-              {searchPattern.searchPatternDescription}
-            </p>
-          )}
-          <p className="text-xs text-muted-foreground/80">
-            {getPatternSummary()}
-          </p>
-          <p className="text-xs text-muted-foreground/60">
-            {searchPattern.lastUsedAt ? "使用" : "作成"}: {timeAgo}
-          </p>
-        </CardContent>
-      </Card>
-    </Link>
+        <p className="text-xs text-muted-foreground/80 truncate">
+          {getPatternSummary()}
+        </p>
+        <p className="text-xs text-muted-foreground/60 truncate">
+          {searchPattern.lastUsedAt ? "使用" : "作成"}: {timeAgo}
+        </p>
+      </CardContent>
+    </Card>
   );
 }
