@@ -182,9 +182,9 @@ export function SearchResults({
                 <Card
                   key={index}
                   className={cn(
-                    "transition-all hover:shadow-md cursor-pointer",
+                    "transition-all hover:shadow-md",
                     "hover:border-muted-foreground/30",
-                    "relative"
+                    "relative !bg-muted/50 "
                   )}
                 >
                   <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row gap-4">
@@ -194,11 +194,11 @@ export function SearchResults({
                           href={item.link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 sm:gap-4"
+                          className="inline-flex items-center gap-2 sm:gap-4 "
                         >
                           <h3 className="text-base sm:text-lg font-medium hover:underline inline-flex items-center gap-1">
                             {item.title}
-                            <span className="absolute inset-0" />
+                            <span className="absolute inset-0 " />
                           </h3>
                           <ExternalLink className="size-3 flex-shrink-0" />
                         </Link>

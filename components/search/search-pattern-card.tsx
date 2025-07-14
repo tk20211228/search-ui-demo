@@ -69,7 +69,8 @@ export function SearchPatternCard({
   return (
     <Card
       className={cn(
-        "transition-all hover:shadow-md hover:border-foreground/20 truncate relative",
+        "transition-all hover:shadow-md hover:border-foreground/20 truncate relative bg-muted/50 backdrop-blur-sm",
+        "!bg-muted/50",
         className
       )}
     >
