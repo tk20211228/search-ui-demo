@@ -17,7 +17,7 @@ import Link from "next/link";
 export default function AvatarMenu() {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild>
         <Button size="icon" variant="outline" className="rounded-full">
           <Image
             src={Avatar}
