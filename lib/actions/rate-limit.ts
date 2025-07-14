@@ -1,6 +1,6 @@
 "use server";
 
-import { getRateLimitStatusOnly, resetRateLimit as resetRateLimitUtil } from '@/lib/rate-limit';
+import { getRateLimitStatusOnly, resetRateLimit as resetRateLimitUtil } from '@/lib/utils/rate-limit';
 import type { RateLimitStatus } from '@/lib/types/rate-limit';
 
 // レート制限の状態を取得

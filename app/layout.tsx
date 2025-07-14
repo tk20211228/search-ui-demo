@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/providers/theme";
 import { cn } from "@/lib/utils";
 import Header from "./components/header";
 import Footer from "./components/footer";
+import { getBaseURL } from "@/lib/utils/base-url";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,6 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getBaseURL()),
   title: "Biz Search System",
   description: "ビジネス向けの高度な顧客情報検索システム",
 };
