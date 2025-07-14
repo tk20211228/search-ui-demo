@@ -7,7 +7,7 @@ import {
 } from '@/lib/types/search';
 import { searchPatternSchema } from '../schemas/search';
 import { generateGoogleSearchParams } from '../utils/search';
-import { checkRateLimit, createRateLimitError } from '@/lib/rate-limit';
+import { checkRateLimit, createRateLimitError } from '@/lib/utils/rate-limit';
 import type { SearchResponseWithRateLimit } from '@/lib/types/rate-limit';
 
 export async function googleSearch(formData: searchPattern, start: number = 1): Promise<SearchResponseWithRateLimit<GoogleSearchRequestResponse>> {
