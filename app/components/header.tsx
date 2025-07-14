@@ -7,7 +7,7 @@ import AvatarMenu from "./avatar-menu";
 
 export default function Header() {
   return (
-    <header className="border-b sticky top-0 z-20 bg-background">
+    <header className="border-b sticky top-0 z-20 bg-muted/50 backdrop-blur-sm">
       <div className="px-4 h-16 flex items-center gap-2">
         <Button asChild variant="ghost" className="font-semibold text-lg gap-2">
           <Link href="/" replace>

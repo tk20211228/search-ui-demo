@@ -63,7 +63,7 @@ export function SearchPatternList() {
           placeholder="検索パターンを検索..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-11 h-11"
+          className="pl-11 h-11 bg-muted/50"
         />
       </div>
 
