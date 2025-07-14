@@ -1,7 +1,6 @@
-import { Redis } from '@upstash/redis'
-import { Ratelimit } from '@upstash/ratelimit'
-import type { RateLimitStatus, RateLimitCheckResult } from '@/lib/types/rate-limit'
-import { RateLimitError } from '@/lib/types/rate-limit'
+import type { RateLimitCheckResult, RateLimitStatus } from '@/lib/types/rate-limit';
+import { RateLimitError } from '@/lib/types/rate-limit';
+import { Ratelimit } from '@upstash/ratelimit';
 import { redis } from './upstash/client';
 
 

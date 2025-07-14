@@ -1,6 +1,12 @@
 import { RateLimitCard } from './components/rate-limit-card'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "設定 | Biz Search System",
+  description: "システム設定とAPI使用状況の確認。検索システムの各種設定を管理できます。",
+};
 
 export default function SettingsPage() {
   return (
