@@ -134,7 +134,7 @@ export function SearchPatternPage() {
                     closeSearch={handleCloseSearch}
                     handlePageChange={handlePageChange}
                     currentStart={currentStart}
-                    error={error}
+                    error={error || undefined}
                   />
                 </motion.div>
 

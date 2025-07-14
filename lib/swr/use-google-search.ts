@@ -1,9 +1,12 @@
 'use client';
 
 import { GoogleSearchRequestResponse, searchPattern } from "@/lib/types/search";
+import type { SearchResponseWithRateLimit } from "@/lib/types/rate-limit";
 import useSWR from "swr";
 import { googleSearch } from "../actions/search";
 import { generateGoogleSearchParams } from "../utils/search";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 interface UseGoogleSearchOptions {
   enabled?: boolean;
@@ -23,18 +26,11 @@ export function useGoogleSearch(
     revalidateOnReconnect = false, // デフォルトでは再接続時に再検証しない
     dedupingInterval = 3 * 60 * 60 * 1000, // 3時間 (10,800,000ms) でデータ保持
   } = options;
-  // if (formData) {
-  //   formData.lastUsedAt = new Date().toISOString();
-  // }
   
-
-  // console.log("formData",formData!)
   const GoogleSearchParams = formData ? generateGoogleSearchParams(formData, start) : null;
   const key = formData && enabled ? ['google-search', GoogleSearchParams] : null;
-  // const key = formData && enabled ? `api/google-search/${formData.id}?customerName=${customerName}` : null;
 
-
-  const { data, error, isLoading, isValidating, mutate } = useSWR<GoogleSearchRequestResponse , Error>(
+  const { data, error, isLoading, isValidating, mutate } = useSWR<SearchResponseWithRateLimit<GoogleSearchRequestResponse>, Error>(
     key,
     () => googleSearch(formData!, start),
     {
@@ -46,13 +42,43 @@ export function useGoogleSearch(
       keepPreviousData: true, // 新しいデータを取得中も前のデータを保持
     }
   );
-  console.log("data", data);
+  
+  // レート制限の通知
+  useEffect(() => {
+    if (data?.rateLimitStatus) {
+      const { remaining } = data.rateLimitStatus;
+      
+      // 警告通知（残り200回以下）
+      if (remaining <= 200 && remaining > 0) {
+        toast.warning(`API使用制限の警告: 残り${remaining}回`, {
+          description: '使用制限に近づいています。',
+        });
+      }
+      
+      // エラー通知（制限到達）
+      if (remaining === 0) {
+        toast.error('API使用制限に到達しました', {
+          description: `次回リセット: ${new Date(data.rateLimitStatus.resetAt).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}`,
+        });
+      }
+    }
+    
+    // APIエラーの通知
+    if (data?.error) {
+      toast.error('検索エラー', {
+        description: data.error,
+      });
+    }
+  }, [data]);
+
+  // console.log("data", data);
 
   return {
-    data,
-    error,
-    isLoading, // データ取得中かどうか
-    isValidating, // データが有効かどうか
-    mutate, // データを更新
+    data: data?.data,
+    error: error || (data?.error ? new Error(data.error) : null),
+    isLoading,
+    isValidating,
+    mutate,
+    rateLimitStatus: data?.rateLimitStatus,
   };
 }

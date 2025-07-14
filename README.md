@@ -2,7 +2,32 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+### Environment Setup
+
+1. Copy the `.env.example` file to `.env.local`:
+```bash
+cp .env.example .env.local
+```
+
+2. Set up the required environment variables in `.env.local`:
+```env
+# Google Custom Search API
+GOOGLE_CUSTOM_SEARCH_API_KEY=your_google_api_key_here
+GOOGLE_CUSTOM_SEARCH_ENGINE_ID=your_search_engine_id_here
+
+# Vercel KV (Upstash Redis for rate limiting)
+KV_REST_API_URL=https://your-redis-url.upstash.io
+KV_REST_API_TOKEN=your_upstash_redis_token_here
+```
+
+### Running the Development Server
+
+First, install dependencies:
+```bash
+npm install
+```
+
+Then, run the development server:
 
 ```bash
 npm run dev
@@ -28,6 +53,14 @@ To learn more about Next.js, take a look at the following resources:
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Features
+
+- **Google Custom Search Integration**: Search across multiple websites with advanced filtering options
+- **Rate Limiting**: Built-in rate limiting (1000 requests/day) with Redis
+- **Search Pattern Management**: Save and reuse search patterns
+- **Real-time Usage Tracking**: Monitor API usage with live updates
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
 
 ## Deploy on Vercel
 

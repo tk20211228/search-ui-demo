@@ -1,5 +1,11 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Biz Search System - 効率的な顧客情報検索",
+  description: "ビジネス向けの高度な顧客情報検索システム。複数の条件を組み合わせて効率的に顧客情報を検索できます。",
+};
 
 export default function Home() {
   return (

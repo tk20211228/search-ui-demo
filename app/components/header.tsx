@@ -1,9 +1,9 @@
 import { AppConfig } from "@/app.config";
-import Avatar from "@/app/images/avatar.png";
 import Logo from "@/app/images/logo.png";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
+import AvatarMenu from "./avatar-menu";
 
 export default function Header() {
   return (
@@ -16,9 +16,7 @@ export default function Header() {
           </Link>
         </Button>
         <span className="flex-1" />
-        <Button asChild size="icon" variant="outline" className="rounded-full">
-          <Image src={Avatar} alt="Biz Search" width={40} height={40} />
-        </Button>
+        <AvatarMenu />
       </div>
     </header>
   );
